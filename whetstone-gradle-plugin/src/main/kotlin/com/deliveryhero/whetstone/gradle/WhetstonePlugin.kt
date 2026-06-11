@@ -4,7 +4,6 @@ import com.android.build.gradle.api.AndroidBasePlugin
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.DependencyHandlerScope
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.hasPlugin
@@ -20,6 +19,11 @@ public class WhetstonePlugin : Plugin<Project> {
         val extension = target.extensions.create<WhetstoneExtension>(WHETSTONE_EXTENSION)
         target.pluginManager.apply(METRO_PLUGIN_ID)
         target.pluginManager.apply(KSP_PLUGIN_ID)
+        target.enableMetroJavaxInterop()
+        // Wire the processor + runtime eagerly. KSP decides whether its per-variant task has work
+        // from the `ksp` configuration during its own afterEvaluate, so the dependency must be
+        // present before then — adding it in our afterEvaluate is too late and KSP gets skipped.
+        target.addCoreDependencies()
         target.afterEvaluate {
             if (!target.plugins.hasPlugin(AndroidBasePlugin::class)) {
                 throw GradleException(
@@ -30,28 +34,44 @@ public class WhetstonePlugin : Plugin<Project> {
                     """.trimIndent().replace('\n', ' ')
                 )
             }
-            target.addDependencies(extension)
+            target.addAddOnDependencies(extension)
         }
     }
 
-    private fun Project.addDependencies(extension: WhetstoneExtension) {
-        val useLocal = findProperty("whetstone.internal.project-dependency").toString().toBoolean()
+    /**
+     * Whetstone consumers annotate their code with the JSR-330 `javax.inject.*` annotations
+     * (`@Inject`, `@Singleton`, `@Qualifier`, …). Metro ignores those by default, so enable the
+     * javax interop mode on the `metro` extension. Done reflectively because the Metro Gradle
+     * plugin is only on this plugin's runtime classpath (not its compile classpath).
+     */
+    private fun Project.enableMetroJavaxInterop() {
+        val metro = extensions.getByName("metro")
+        val interop = metro.javaClass.getMethod("getInterop").invoke(metro)
+        @Suppress("UNCHECKED_CAST")
+        val includeJavax = interop.javaClass.getMethod("getIncludeJavaxAnnotations").invoke(interop)
+            as org.gradle.api.provider.Property<Boolean>
+        includeJavax.set(true)
+    }
 
-        fun dependency(moduleId: String): Any = when {
+    private fun Project.dependency(moduleId: String): Any {
+        val useLocal = findProperty("whetstone.internal.project-dependency").toString().toBoolean()
+        return when {
             useLocal -> project(":$moduleId")
             else -> "${BuildConfig.GROUP}:$moduleId:${BuildConfig.VERSION}"
         }
+    }
 
-        fun DependencyHandlerScope.ksp(moduleId: String) = add("ksp", dependency(moduleId))
-        fun DependencyHandlerScope.implementation(moduleId: String) =
-            add("implementation", dependency(moduleId))
-
+    private fun Project.addCoreDependencies() {
         dependencies {
-            ksp("whetstone-compiler")
-            implementation("whetstone")
+            add("ksp", dependency("whetstone-compiler"))
+            add("implementation", dependency("whetstone"))
+        }
+    }
 
-            if (extension.addOns.compose.get()) implementation("whetstone-compose")
-            if (extension.addOns.workManager.get()) implementation("whetstone-worker")
+    private fun Project.addAddOnDependencies(extension: WhetstoneExtension) {
+        dependencies {
+            if (extension.addOns.compose.get()) add("implementation", dependency("whetstone-compose"))
+            if (extension.addOns.workManager.get()) add("implementation", dependency("whetstone-worker"))
         }
     }
 

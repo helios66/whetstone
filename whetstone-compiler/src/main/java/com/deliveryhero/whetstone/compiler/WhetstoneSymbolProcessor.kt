@@ -47,7 +47,15 @@ internal class WhetstoneSymbolProcessor(
     private val logger: KSPLogger,
 ) : SymbolProcessor {
 
+    private var invoked = false
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
+        // We scan every class in the round (rather than a fixed annotation set, since triggers are
+        // open-ended meta-annotations), so run exactly once to avoid re-emitting generated files in
+        // subsequent KSP rounds.
+        if (invoked) return emptyList()
+        invoked = true
+
         resolver.getAllFiles().forEach { file ->
             file.declarations
                 .filterIsInstance<KSClassDeclaration>()
@@ -189,16 +197,9 @@ internal class WhetstoneSymbolProcessor(
             .addFunction(createInFactory)
             .build()
 
-        val companionSpec = TypeSpec.companionObjectBuilder()
-            .addFunction(
-                FunSpec.builder("create")
-                    .addParameter("application", APPLICATION)
-                    .returns(APPLICATION_COMPONENT)
-                    .addStatement("return %M<%T>().create(application)", CREATE_GRAPH_FACTORY, factory)
-                    .build()
-            )
-            .build()
-
+        // Do NOT declare a companion object: Metro generates the graph's companion and the
+        // `create` factory SAM into it automatically (it only does so when none is present). That
+        // is what makes `GeneratedApplicationComponent.create(application)` resolve.
         val graphSpec = TypeSpec.interfaceBuilder(graph)
             .addSuperinterface(APPLICATION_COMPONENT)
             .addAnnotation(
@@ -207,7 +208,6 @@ internal class WhetstoneSymbolProcessor(
                     .build()
             )
             .addType(factorySpec)
-            .addType(companionSpec)
             .build()
 
         writeFile(clazz, packageName, GENERATED_APP_COMPONENT, graphSpec)

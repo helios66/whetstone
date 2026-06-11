@@ -7,6 +7,10 @@ plugins {
 }
 
 dependencies {
+    // Whetstone consumers use the JSR-330 javax.inject annotations; expose them transitively.
+    // Metro is configured (by the Gradle plugin) to treat them as injection points.
+    api(libs.javaxInject)
+
     implementation(libs.androidxLifecycleRuntime)
     implementation(libs.androidxLifecycleProcess)
     implementation(libs.androidxLifecycleViewModel)
