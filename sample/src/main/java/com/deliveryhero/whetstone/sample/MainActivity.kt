@@ -2,6 +2,7 @@ package com.deliveryhero.whetstone.sample
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
@@ -16,16 +17,29 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import com.deliveryhero.whetstone.Whetstone
+import com.deliveryhero.whetstone.activity.ContributesActivityInjector
 import com.deliveryhero.whetstone.compose.injectedViewModel
 import com.deliveryhero.whetstone.sample.databinding.ActivityMainBinding
+import com.deliveryhero.whetstone.sample.library.MainDependency
 import com.deliveryhero.whetstone.sample.library.MainViewModel
 import com.deliveryhero.whetstone.viewmodel.injectedViewModel
+import javax.inject.Inject
 
+@ContributesActivityInjector
 class MainActivity : AppCompatActivity() {
     private val serviceIntent by lazy { Intent(this, MainService::class.java) }
 
+    @Inject
+    internal lateinit var dependency: MainDependency
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Must run before super.onCreate so Whetstone can install its FragmentFactory and inject
+        // this activity's @Inject members.
+        Whetstone.inject(this)
         super.onCreate(savedInstanceState)
+        Log.d("Activity", dependency.getMessage("MainActivity"))
+
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.composeView.setContent {
@@ -35,6 +49,10 @@ class MainActivity : AppCompatActivity() {
                 }
             )
         }
+
+        // Exercise the @ContributesFragment path: the installed multibinding FragmentFactory
+        // constructor-injects MainFragment.
+        supportFragmentManager.fragmentFactory.instantiate(classLoader, MainFragment::class.java.name)
 
         ContextCompat.startForegroundService(this, serviceIntent)
         val request = OneTimeWorkRequest.from(MainWorker::class.java)

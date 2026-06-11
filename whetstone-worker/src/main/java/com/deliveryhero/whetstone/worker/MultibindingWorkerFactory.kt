@@ -5,11 +5,13 @@ import androidx.annotation.RestrictTo
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
+import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.app.ApplicationScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 
 @ContributesBinding(ApplicationScope::class)
+@SingleIn(ApplicationScope::class)
 @Inject
 public class MultibindingWorkerFactory(
     private val workerComponentFactory: WorkerComponent.Factory

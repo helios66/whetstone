@@ -63,102 +63,116 @@ internal class WhetstoneSymbolProcessor(
         return emptyList()
     }
 
+    /** A single `@Binds @IntoMap` declaration plus the scope its contributing interface targets. */
+    private class ScopedProperty(val scope: ClassName, val property: PropertySpec)
+
     private fun processClass(clazz: KSClassDeclaration) {
         if (clazz.classKind == ClassKind.ANNOTATION_CLASS) return
 
-        var bindingGenerated = false
+        val target = clazz.toClassName()
+        // Accumulate every binding the class triggers, then emit a SINGLE file for the class. A class
+        // may carry more than one trigger (e.g. an explicit @ContributesInjector plus a meta-trigger);
+        // emitting one file per trigger would collide on the file name.
+        val bindings = mutableListOf<ScopedProperty>()
+        var generateAppGraph = false
+
         for (annotation in clazz.annotations) {
             val annotationDecl = annotation.annotationType.resolve().declaration as? KSClassDeclaration
                 ?: continue
             val annotationFqName = annotationDecl.qualifiedName?.asString() ?: continue
 
-            when {
-                annotationFqName == CONTRIBUTES_INJECTOR -> {
-                    val scope = annotation.classArgument(NAME_SCOPE) ?: continue
-                    generateInjectorModule(clazz, scope)
-                    bindingGenerated = true
+            if (annotationFqName == CONTRIBUTES_INJECTOR) {
+                annotation.classArgument(NAME_SCOPE)?.let {
+                    bindings += ScopedProperty(it, injectorProperty(target))
                 }
-
-                else -> {
-                    annotationDecl.metaAnnotation(AUTO_INJECTOR_BINDING)?.let { meta ->
-                        val scope = meta.classArgument(NAME_SCOPE) ?: return@let
-                        generateInjectorModule(clazz, scope)
-                        bindingGenerated = true
-                    }
-                    annotationDecl.metaAnnotation(AUTO_INSTANCE_BINDING)?.let { meta ->
-                        val base = meta.classArgument(NAME_BASE) ?: return@let
-                        val scope = meta.classArgument(NAME_SCOPE) ?: return@let
-                        generateInstanceModule(clazz, base, scope)
-                        bindingGenerated = true
-                    }
+            } else {
+                annotationDecl.metaAnnotation(AUTO_INJECTOR_BINDING)?.classArgument(NAME_SCOPE)?.let {
+                    bindings += ScopedProperty(it, injectorProperty(target))
+                }
+                annotationDecl.metaAnnotation(AUTO_INSTANCE_BINDING)?.let { meta ->
+                    val base = meta.classArgument(NAME_BASE) ?: return@let
+                    val scope = meta.classArgument(NAME_SCOPE) ?: return@let
+                    bindings += ScopedProperty(scope, instanceProperty(target, base))
                 }
             }
 
             if (annotationFqName == CONTRIBUTES_APP_INJECTOR &&
                 annotation.booleanArgument(NAME_GENERATE_APP_COMPONENT)
             ) {
-                generateApplicationGraph(clazz)
+                generateAppGraph = true
             }
         }
 
-        // Defensive: a missing binding here usually means a malformed custom annotation.
-        if (!bindingGenerated) return
+        if (bindings.isNotEmpty()) writeModules(clazz, target, bindings)
+        if (generateAppGraph) generateApplicationGraph(clazz)
     }
 
     /**
      * ```
-     * @ContributesTo(scope::class)
-     * interface Foo_WhetstoneModule {
-     *   @Binds @IntoMap @ClassKey(Foo::class)
-     *   val MembersInjector<Foo>.bindFooInjector: MembersInjector<*>
-     * }
+     * @Binds @IntoMap @ClassKey(Foo::class)
+     * val MembersInjector<Foo>.bindFooInjector: MembersInjector<*>
      * ```
      */
-    private fun generateInjectorModule(clazz: KSClassDeclaration, scope: ClassName) {
-        val target = clazz.toClassName()
-        val property = PropertySpec
-            .builder("bind${target.simpleName}Injector", MEMBERS_INJECTOR.parameterizedBy(STAR))
-            .receiver(MEMBERS_INJECTOR.parameterizedBy(target))
-            .addAnnotation(BINDS)
-            .addAnnotation(INTO_MAP)
-            .addAnnotation(classKey(target))
-            .build()
-        writeModule(clazz, target, scope, property)
-    }
+    private fun injectorProperty(target: ClassName): PropertySpec = PropertySpec
+        .builder("bind${target.simpleName}Injector", MEMBERS_INJECTOR.parameterizedBy(STAR))
+        .receiver(MEMBERS_INJECTOR.parameterizedBy(target))
+        .addAnnotation(BINDS)
+        .addAnnotation(INTO_MAP)
+        .addAnnotation(classKey(target))
+        .build()
 
     /**
      * ```
-     * @ContributesTo(scope::class)
+     * @Binds @IntoMap @ClassKey(Foo::class)
+     * val Foo.bindFoo: Base
+     * ```
+     */
+    private fun instanceProperty(target: ClassName, base: ClassName): PropertySpec = PropertySpec
+        .builder("bind${target.simpleName}", base)
+        .receiver(target)
+        .addAnnotation(BINDS)
+        .addAnnotation(INTO_MAP)
+        .addAnnotation(classKey(target))
+        .build()
+
+    /**
+     * Emits one file per annotated class containing a `@ContributesTo(scope)` interface per distinct
+     * scope, each holding that scope's `@Binds @IntoMap` declarations. For example:
+     * ```
+     * @ContributesTo(ViewModelScope::class)
      * interface Foo_WhetstoneModule {
      *   @Binds @IntoMap @ClassKey(Foo::class)
-     *   val Foo.bindFoo: Base
+     *   val Foo.bindFoo: ViewModel
      * }
      * ```
      */
-    private fun generateInstanceModule(clazz: KSClassDeclaration, base: ClassName, scope: ClassName) {
-        val target = clazz.toClassName()
-        val property = PropertySpec
-            .builder("bind${target.simpleName}", base)
-            .receiver(target)
-            .addAnnotation(BINDS)
-            .addAnnotation(INTO_MAP)
-            .addAnnotation(classKey(target))
-            .build()
-        writeModule(clazz, target, scope, property)
-    }
-
-    private fun writeModule(
+    private fun writeModules(
         clazz: KSClassDeclaration,
         target: ClassName,
-        scope: ClassName,
-        property: PropertySpec,
+        bindings: List<ScopedProperty>,
     ) {
-        val moduleName = "${target.simpleNames.joinToString("_")}_WhetstoneModule"
-        val module = TypeSpec.interfaceBuilder(moduleName)
-            .addAnnotation(contributesTo(scope))
-            .addProperty(property)
-            .build()
-        writeFile(clazz, target.packageName, moduleName, module)
+        val fileName = "${target.simpleNames.joinToString("_")}_WhetstoneModule"
+        val byScope = bindings.groupBy { it.scope }
+        val singleScope = byScope.size == 1
+
+        val fileBuilder = FileSpec.builder(target.packageName, fileName)
+            .addFileComment("Automatically generated by Whetstone. DO NOT MODIFY")
+
+        byScope.forEach { (scope, scopedProperties) ->
+            val interfaceName = if (singleScope) fileName else "${fileName}_${scope.simpleName}"
+            val moduleBuilder = TypeSpec.interfaceBuilder(interfaceName)
+                .addAnnotation(contributesTo(scope))
+            scopedProperties
+                .distinctBy { it.property.name }
+                .forEach { moduleBuilder.addProperty(it.property) }
+            fileBuilder.addType(moduleBuilder.build())
+        }
+
+        fileBuilder.build().writeTo(
+            codeGenerator = codeGenerator,
+            aggregating = false,
+            originatingKSFiles = listOfNotNull(clazz.containingFile),
+        )
     }
 
     /**

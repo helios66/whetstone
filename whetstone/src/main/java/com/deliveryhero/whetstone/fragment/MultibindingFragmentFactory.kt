@@ -2,6 +2,7 @@ package com.deliveryhero.whetstone.fragment
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentFactory
+import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.activity.ActivityScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -11,6 +12,7 @@ import dev.zacsweers.metro.Inject
  * [ContributesFragment].
  */
 @ContributesBinding(ActivityScope::class)
+@SingleIn(ActivityScope::class)
 @Inject
 public class MultibindingFragmentFactory(
     private val fragmentComponentFactory: FragmentComponent.Factory

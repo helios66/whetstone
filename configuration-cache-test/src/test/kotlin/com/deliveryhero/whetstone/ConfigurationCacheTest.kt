@@ -160,5 +160,33 @@ class ConfigurationCacheTest {
             "MainWorker module should bind MainWorker into the worker multibinding. " +
                 "Content: $workerModule"
         )
+
+        // 4. Activity member-injector binding (@ContributesActivityInjector)
+        val activityModule = File(genDir, "MainActivity_WhetstoneModule.kt").readText()
+        assertTrue(
+            activityModule.contains("@ContributesTo(ActivityScope::class)") &&
+                activityModule.contains("MembersInjector<MainActivity>"),
+            "MainActivity module should bind MembersInjector<MainActivity> into ActivityScope. " +
+                "Content: $activityModule"
+        )
+
+        // 5. Fragment instance binding (@ContributesFragment)
+        val fragmentModule = File(genDir, "MainFragment_WhetstoneModule.kt").readText()
+        assertTrue(
+            fragmentModule.contains("@ContributesTo(FragmentScope::class)") &&
+                fragmentModule.contains(": Fragment") &&
+                fragmentModule.contains("@ClassKey(MainFragment::class)"),
+            "MainFragment module should bind MainFragment into the fragment multibinding. " +
+                "Content: $fragmentModule"
+        )
+
+        // 6. Generic @ContributesInjector(scope) member-injector binding
+        val customModule = File(genDir, "CustomInjectable_WhetstoneModule.kt").readText()
+        assertTrue(
+            customModule.contains("@ContributesTo(ActivityScope::class)") &&
+                customModule.contains("MembersInjector<CustomInjectable>"),
+            "CustomInjectable module should bind MembersInjector<CustomInjectable> into ActivityScope. " +
+                "Content: $customModule"
+        )
     }
 }
