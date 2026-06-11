@@ -8,7 +8,6 @@ import androidx.work.Configuration
 import androidx.work.WorkManager
 import com.deliveryhero.whetstone.Whetstone
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 
 public class WhetstoneWorkerInitializer : Initializer<WorkManager> {
 
@@ -24,9 +23,9 @@ public class WhetstoneWorkerInitializer : Initializer<WorkManager> {
 
 
 private fun Whetstone.installWorkerFactory(application: Application) {
-    val parentComponent = fromApplication<WorkerComponent.ParentComponent>(application)
+    val factoryProvider = fromApplication<WorkerFactoryProvider>(application)
     val configuration = Configuration.Builder()
-        .setWorkerFactory(parentComponent.getWorkerFactory())
+        .setWorkerFactory(factoryProvider.workerFactory)
         .setWorkerCoroutineContext(Dispatchers.IO)
         .setInitializationExceptionHandler { throwable ->
             Log.i("WhetstoneWInitializer", "Error initializing WorkManager", throwable)
