@@ -1,11 +1,10 @@
 package com.deliveryhero.whetstone.injector
 
-import dagger.MembersInjector
 import kotlin.reflect.KClass
 
 /**
- * Marker annotation signalling that the compiler should generate necessary [MembersInjector]
- * bindings for the annotated class.
+ * Marker annotation signalling that the compiler should generate the necessary `MembersInjector`
+ * binding for the annotated class.
  *
  * For example:
  * Given this annotated class
@@ -15,15 +14,12 @@ import kotlin.reflect.KClass
  *     @Inject lateinit var someEntity: SomeEntity
  * }
  * ```
- * a complementary module will be generated
+ * a complementary contributing interface will be generated
  * ```
- * @Module
  * @ContributesTo(ActivityScope::class)
- * interface MyActivityModule {
- *     @Binds
- *     @IntoMap
- *     @LazyClassKey(MyActivity::class)
- *     fun binds(target: MembersInjector<MyActivity>): MembersInjector<*>
+ * interface MyActivityInjectorModule {
+ *     @Binds @IntoMap @ClassKey(MyActivity::class)
+ *     val MembersInjector<MyActivity>.bindMyActivityInjector: MembersInjector<*>
  * }
  * ```
  */

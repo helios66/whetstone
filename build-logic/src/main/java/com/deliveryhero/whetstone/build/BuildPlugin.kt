@@ -33,7 +33,6 @@ class BuildPlugin : Plugin<Project> {
 
     private fun Project.configureKotlin() = configure<KotlinProjectExtension> {
         val config: KotlinJvmCompilerOptions.() -> Unit = {
-            optIn.add("com.squareup.anvil.annotations.ExperimentalAnvilApi")
             freeCompilerArgs.addAll("-Xjvm-default=all", "-Xassertions=jvm")
             jvmTarget.set(JvmTarget.JVM_11)
         }

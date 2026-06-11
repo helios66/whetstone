@@ -1,30 +1,28 @@
 package com.deliveryhero.whetstone.fragment
 
 import androidx.fragment.app.Fragment
-import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.activity.ActivityScope
-import com.squareup.anvil.annotations.ContributesSubcomponent
-import com.squareup.anvil.annotations.ContributesTo
-import javax.inject.Provider
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.GraphExtension
+import dev.zacsweers.metro.Multibinds
+import kotlin.reflect.KClass
 
 /**
- * A Dagger component that has the lifetime of the [androidx.fragment.app.Fragment].
+ * A Metro graph extension that has the lifetime of the [androidx.fragment.app.Fragment].
  */
-@ContributesSubcomponent(scope = FragmentScope::class, parentScope = ActivityScope::class)
-@SingleIn(FragmentScope::class)
+@GraphExtension(FragmentScope::class)
 public interface FragmentComponent {
-    public val fragmentMap: Map<Class<*>, Provider<Fragment>>
+
+    @Multibinds(allowEmpty = true)
+    public val fragmentMap: Map<KClass<*>, () -> Fragment>
 
     /**
-     * Interface for creating an [FragmentComponent].
+     * Interface for creating a [FragmentComponent]. Contributed to [ActivityScope] so the
+     * activity graph exposes it.
      */
-    @ContributesSubcomponent.Factory
+    @GraphExtension.Factory
+    @ContributesTo(ActivityScope::class)
     public interface Factory {
         public fun create(): FragmentComponent
-    }
-
-    @ContributesTo(ActivityScope::class)
-    public interface ParentComponent {
-        public fun getFragmentComponentFactory(): Factory
     }
 }

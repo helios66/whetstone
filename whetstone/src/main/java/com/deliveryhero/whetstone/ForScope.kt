@@ -1,21 +1,13 @@
 package com.deliveryhero.whetstone
 
-import dagger.Binds
-import dagger.Provides
-import javax.inject.Inject
-import javax.inject.Qualifier
-import javax.inject.Scope
-import kotlin.annotation.AnnotationRetention.RUNTIME
-import kotlin.reflect.KClass
-
 /**
- * Qualifies this provided type (via [Provides], [Binds], [Inject], etc)
- * for a given [value] scope to distinguish it from instances of the same
- * type in other scopes.
+ * Qualifies this provided type (via `@Provides`, `@Binds`, `@Inject`, etc) for a given scope to
+ * distinguish it from instances of the same type in other scopes, e.g.
+ * `@ForScope(ApplicationScope::class) context: Context`.
  *
- * Note that the [value] does not actually need to be a [Scope]-annotated
- * annotation class. It is _solely_ a key.
+ * Note that the scope does not actually need to be a scope-annotated annotation class. It is
+ * _solely_ a key.
+ *
+ * Backed by [Metro's][dev.zacsweers.metro.ForScope] qualifier annotation.
  */
-@Qualifier
-@Retention(RUNTIME)
-public annotation class ForScope(val value: KClass<*>)
+public typealias ForScope = dev.zacsweers.metro.ForScope

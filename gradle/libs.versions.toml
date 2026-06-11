@@ -10,7 +10,10 @@ androidxWork = "2.10.0"
 anvil = "2.6.1"
 constraintlayout = "2.2.0"
 dagger = "2.56.2"
-kotlin = "2.2.0"
+kotlin = "2.3.20"
+metro = "1.2.0"
+ksp = "2.3.9"
+kotlinpoet = "2.3.0"
 mavenPublish = "0.34.0"
 autoService = "1.1.1"
 detekt = "1.23.8"
@@ -23,6 +26,8 @@ material = "1.12.0"
 androidApp = { id = "com.android.application", version.ref = "agp" }
 androidLib = { id = "com.android.library", version.ref = "agp" }
 anvil = { id = "com.squareup.anvil", version.ref = "anvil" }
+metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 binaryValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }
 kotlinCompose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -61,5 +66,11 @@ espresso-core = { group = "androidx.test.espresso", name = "espresso-core", vers
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+metroRuntime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
+metroGradle = { module = "dev.zacsweers.metro:gradle-plugin", version.ref = "metro" }
+kspGradle = { module = "com.google.devtools.ksp:symbol-processing-gradle-plugin", version.ref = "ksp" }
+kspApi = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+kotlinpoetKsp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 mavenPublish = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "mavenPublish" }

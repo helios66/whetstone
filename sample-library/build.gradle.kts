@@ -5,11 +5,6 @@ plugins {
     id("com.deliveryhero.whetstone")
 }
 
-whetstone {
-    generateDaggerFactories = true
-    syncGeneratedSources = false
-}
-
 android {
     namespace = "com.deliveryhero.whetstone.sample.library"
     compileSdk = 35
@@ -21,9 +16,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
 
     val dimensionName = "di_dimension"

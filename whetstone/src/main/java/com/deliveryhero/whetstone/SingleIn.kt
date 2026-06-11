@@ -1,19 +1,12 @@
 package com.deliveryhero.whetstone
 
-import dagger.Binds
-import dagger.Provides
-import javax.inject.Inject
-import javax.inject.Scope
-import kotlin.annotation.AnnotationRetention.RUNTIME
-import kotlin.reflect.KClass
-
 /**
- * Indicates that this provided type (via [Provides], [Binds], [Inject], etc)
- * will only have a single instances within the target [value] scope.
+ * Indicates that this provided type (via `@Provides`, `@Binds`, `@Inject`, etc) will only have a
+ * single instance within the target scope, e.g. `@SingleIn(ApplicationScope::class)`.
  *
- * Note that the [value] does not actually need to be a [Scope]-annotated
- * annotation class. It is _solely_ a key.
+ * Note that the scope does not actually need to be a scope-annotated annotation class. It is
+ * _solely_ a key.
+ *
+ * Backed by [Metro's][dev.zacsweers.metro.SingleIn] scope annotation.
  */
-@Scope
-@Retention(RUNTIME)
-public annotation class SingleIn(val value: KClass<*>)
+public typealias SingleIn = dev.zacsweers.metro.SingleIn
