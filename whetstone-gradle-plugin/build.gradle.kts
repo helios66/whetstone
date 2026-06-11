@@ -97,9 +97,3 @@ abstract class GenerateBuildConfigTask : DefaultTask() {
         }
     }
 }
-
-afterEvaluate {
-    with(tasks) {
-        findByName("kaptGenerateStubsKotlin")?.dependsOn(findByName("generateBuildConfig"))
-    }
-}

@@ -4,8 +4,6 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.util.zip.ZipFile
-import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
@@ -71,8 +69,9 @@ class ConfigurationCacheTest {
     }
 
     @Test
-    fun `proguard files are packaged in AAR with configuration cache`() {
-        // Build AAR with configuration cache
+    fun `whetstone KSP processor emits Metro contributions under configuration cache`() {
+        // Build the AAR with configuration cache; this drives the KSP processor that translates
+        // Whetstone annotations (e.g. @ContributesViewModel) into Metro @ContributesTo modules.
         // Note: Not using :clean to avoid race conditions with parallel CI tasks
         val result = GradleRunner.create()
             .withProjectDir(projectRoot)
@@ -89,41 +88,77 @@ class ConfigurationCacheTest {
             "AAR bundling should succeed with configuration cache (got: $outcome)"
         )
 
-        // Verify proguard files exist in kotlin-classes directory
-        val kotlinClassesProguard = File(
+        // Verify the KSP-generated Metro contribution exists for the contributed ViewModel.
+        val generatedModule = File(
             projectRoot,
-            "sample-library/build/tmp/kotlin-classes/metroRelease/META-INF/proguard"
+            "sample-library/build/generated/ksp/metroRelease/kotlin/" +
+                "com/deliveryhero/whetstone/sample/library/MainViewModel_WhetstoneModule.kt"
         )
-
         assertTrue(
-            kotlinClassesProguard.exists() && kotlinClassesProguard.isDirectory,
-            "META-INF/proguard directory should exist in kotlin-classes output"
+            generatedModule.exists(),
+            "KSP should generate MainViewModel_WhetstoneModule.kt at ${generatedModule.path}"
         )
 
-        val proguardFiles = kotlinClassesProguard.listFiles { file -> file.extension == "pro" }
+        val generated = generatedModule.readText()
         assertTrue(
-            proguardFiles != null && proguardFiles.isNotEmpty(),
-            "Should have at least one .pro file copied to kotlin-classes"
+            generated.contains("@ContributesTo") &&
+                generated.contains("@ClassKey(MainViewModel::class)") &&
+                generated.contains(": ViewModel"),
+            "Generated module should bind MainViewModel into the Metro ViewModel multibinding. " +
+                "Content: $generated"
+        )
+    }
+
+    @Test
+    fun `whetstone KSP processor emits the full set of Metro contribution shapes`() {
+        val result = GradleRunner.create()
+            .withProjectDir(projectRoot)
+            .withArguments(":sample:assembleMetroDebug", "--configuration-cache")
+            .forwardOutput()
+            .build()
+
+        val outcome = result.task(":sample:assembleMetroDebug")?.outcome
+        assertTrue(
+            outcome == TaskOutcome.SUCCESS || outcome == TaskOutcome.UP_TO_DATE,
+            "Sample app should assemble with configuration cache (got: $outcome)"
         )
 
-        // Verify AAR contains proguard.txt
-        val aarFile = File(
+        val genDir = File(
             projectRoot,
-            "sample-library/build/outputs/aar/sample-library-metro-release.aar"
+            "sample/build/generated/ksp/metroDebug/kotlin/com/deliveryhero/whetstone/sample"
         )
 
-        assertTrue(aarFile.exists(), "AAR file should exist")
-
-        // Verify proguard.txt is in the AAR using ZipFile API for platform independence
-        val proguardContent = ZipFile(aarFile).use { zipFile ->
-            val entry = zipFile.getEntry("proguard.txt")
-            assertTrue(entry != null, "Should be able to extract proguard.txt from AAR")
-            zipFile.getInputStream(entry!!).bufferedReader().readText()
-        }
-
+        // 1. Root @DependencyGraph generated for @ContributesAppInjector(generateAppComponent = true)
+        val appGraph = File(genDir, "GeneratedApplicationComponent.kt").readText()
         assertTrue(
-            proguardContent.contains("-keep"),
-            "Proguard file should contain keep rules. Content: $proguardContent"
+            appGraph.contains("@DependencyGraph(scope = ApplicationScope::class)") &&
+                appGraph.contains(": ApplicationComponent") &&
+                appGraph.contains("public fun interface Factory") &&
+                appGraph.contains("@Provides") &&
+                appGraph.contains("application: Application"),
+            "GeneratedApplicationComponent should be a Metro @DependencyGraph with a @Provides factory. " +
+                "Content: $appGraph"
+        )
+
+        // 2. Member-injector binding for an @AutoInjectorBinding annotation (@ContributesServiceInjector)
+        val serviceModule = File(genDir, "MainService_WhetstoneModule.kt").readText()
+        assertTrue(
+            serviceModule.contains("@ContributesTo(ServiceScope::class)") &&
+                serviceModule.contains("MembersInjector<MainService>") &&
+                serviceModule.contains("MembersInjector<*>") &&
+                serviceModule.contains("@ClassKey(MainService::class)"),
+            "MainService module should bind MembersInjector<MainService> into the injector map. " +
+                "Content: $serviceModule"
+        )
+
+        // 3. Instance binding for an @AutoInstanceBinding annotation (@ContributesWorker)
+        val workerModule = File(genDir, "MainWorker_WhetstoneModule.kt").readText()
+        assertTrue(
+            workerModule.contains("@ContributesTo(WorkerScope::class)") &&
+                workerModule.contains(": ListenableWorker") &&
+                workerModule.contains("@ClassKey(MainWorker::class)"),
+            "MainWorker module should bind MainWorker into the worker multibinding. " +
+                "Content: $workerModule"
         )
     }
 }

@@ -3,8 +3,6 @@ plugins {
     alias(libs.plugins.androidApp) apply false
     alias(libs.plugins.androidLib) apply false
     alias(libs.plugins.kotlinJvm) apply false
-    alias(libs.plugins.kotlinKapt) apply false
-    alias(libs.plugins.anvil) apply false
     alias(libs.plugins.metro) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.mavenPublish) apply false
@@ -14,6 +12,9 @@ plugins {
 
 apiValidation {
     ignoredProjects.addAll(listOf("sample", "sample-library", "whetstone-compiler"))
+    // Metro emits contribution "hint" classes into the metro.hints package; they are an
+    // implementation detail of the DI engine, not Whetstone's public API.
+    ignoredPackages.add("metro.hints")
 }
 
 tasks.register<Delete>("clean") {

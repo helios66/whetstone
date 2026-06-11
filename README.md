@@ -3,20 +3,28 @@
 
 # Whetstone
 
-> "An Anvil forges a Dagger. A Whetstone sharpens it. And when you're not planning on using your Dagger, you may keep it in something that rhymes with kilt." — [Tiago Cunha](https://github.com/laggedHero).
+> "An Anvil forges a Dagger. A Whetstone sharpens it." — [Tiago Cunha](https://github.com/laggedHero).
 
-Whetstone provides a simplified way to incorporate [Dagger](https://github.com/google/dagger) and [Anvil](https://github.com/square/anvil) into an Android application.
+Whetstone provides a simplified way to incorporate dependency injection into an Android application.
+It is powered by [Metro](https://github.com/zacsweers/metro), a compile-time dependency-injection
+framework for Kotlin.
+
+> **Note:** As of the upcoming release Whetstone's DI engine is **Metro** (it was previously
+> [Dagger](https://github.com/google/dagger) + [Anvil](https://github.com/square/anvil)). The public
+> API is unchanged — the same `@ContributesViewModel`, `@ContributesFragment`,
+> `@ContributesActivityInjector`, `@SingleIn`, `Whetstone.inject(...)`, etc. — so existing code keeps
+> working. You no longer need KAPT or Dagger; Whetstone applies Metro and KSP for you.
 
 The goals of Whetstone are:
 
-- To simplify Dagger-related infrastructure for Android apps.
+- To simplify dependency-injection infrastructure for Android apps.
 - To create a standard set of components and scopes to ease setup, but allowing customizations.
 
 ## Why would you use Whetstone instead of Hilt?
 
 - All generated code is in Kotlin, which can have significant benefits in a Kotlin only codebase
-- Whetstone avoids KAPT completely for performance reasons by taking advantage of Anvil compiler.
-- Whetstone is extensible by using the powers of Dagger and Anvil.
+- Whetstone avoids KAPT completely for performance reasons by building on the Metro compiler plugin.
+- Whetstone is extensible by using the powers of Metro.
 - Whetstone significantly reduces boiler plate.
 - Whetstone doesn't do bytecode manipulation for complementing classes. Hilt does.
 - Summarily, while philosophies are similar, whetstone is relatively easier to work with ;). 
@@ -48,7 +56,7 @@ buildscript {
 apply(plugin = "com.deliveryhero.whetstone")
 ```
 
-This automatically configures Dagger and Anvil, and also adds the necessary whetstone dependencies for you.
+This automatically configures Metro and KSP, and also adds the necessary whetstone dependencies for you.
 
 ### Using Snapshot Builds
 
@@ -100,26 +108,26 @@ Note: For more sophisticated use cases, the generated app component might not be
 An example may look like this:
 
 ```kotlin
-@Singleton // Optional. Can be omitted if you never use this annotation
 @SingleIn(ApplicationScope::class)
-@MergeComponent(ApplicationScope::class)
+@DependencyGraph(ApplicationScope::class)
 interface MyApplicationComponent : ApplicationComponent {
 
-    @Component.Factory
+    @DependencyGraph.Factory
     interface Factory {
         fun create(
-            @BindsInstance application: Application, // this is necessary for whetstone to set things up properly
+            @Provides application: Application, // this is necessary for whetstone to set things up properly
             // ...
         ): MyApplicationComponent
     }
 }
 ```
 
-After that, you can easily inject into any Android class (see below).
+`@DependencyGraph` and `@Provides` come from Metro (`dev.zacsweers.metro`). After that, you can
+easily inject into any Android class (see below).
 
 ### Guide
 
-Unlike traditional Dagger, you do not need to define or instantiate Dagger components directly. Instead, we offer predefined components that are generated for you. Whetstone comes with a built-in set of components (and corresponding scope annotations) that are automatically integrated to the Android Framework. As expected, a binding in a child component can have dependencies on any binding in an ancestor component.
+You do not need to define or instantiate dependency graphs directly. Instead, we offer predefined components that are generated for you. Whetstone comes with a built-in set of components (and corresponding scope annotations) that are automatically integrated to the Android Framework. As expected, a binding in a child component (a Metro graph extension) can have dependencies on any binding in an ancestor component.
 
 ### Component Lifecycle
 
