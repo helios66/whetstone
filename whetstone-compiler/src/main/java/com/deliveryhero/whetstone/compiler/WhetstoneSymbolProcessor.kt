@@ -15,7 +15,6 @@ import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
@@ -272,7 +271,6 @@ internal class WhetstoneSymbolProcessor(
         val PROVIDES = ClassName(METRO, "Provides")
         val DEPENDENCY_GRAPH = ClassName(METRO, "DependencyGraph")
         val DEPENDENCY_GRAPH_FACTORY = DEPENDENCY_GRAPH.nestedClass("Factory")
-        val CREATE_GRAPH_FACTORY = MemberName(METRO, "createGraphFactory")
 
         val APPLICATION = ClassName("android.app", "Application")
         val APPLICATION_COMPONENT = ClassName("com.deliveryhero.whetstone.app", "ApplicationComponent")
