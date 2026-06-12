@@ -26,7 +26,7 @@ subprojects {
             repositories {
                 maven {
                     name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/helios66/whetstone")
+                    url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
                     credentials {
                         username = (findProperty("gpr.user") as String?) ?: System.getenv("GITHUB_ACTOR")
                         password = (findProperty("gpr.key") as String?) ?: System.getenv("GITHUB_TOKEN")

@@ -9,6 +9,10 @@ plugins {
 }
 
 loadParentProperties()
+// The java-gradle-plugin `pluginMaven` publication takes its groupId from project.group, so set it
+// (and version) from the parent gradle.properties that loadParentProperties() loaded above.
+group = project.property("GROUP").toString()
+version = project.property("VERSION_NAME").toString()
 
 fun loadParentProperties() {
     val properties = Properties()
@@ -48,7 +52,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/helios66/whetstone")
+            url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
             credentials {
                 username = (findProperty("gpr.user") as String?) ?: System.getenv("GITHUB_ACTOR")
                 password = (findProperty("gpr.key") as String?) ?: System.getenv("GITHUB_TOKEN")
