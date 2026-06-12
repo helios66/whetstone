@@ -25,7 +25,7 @@ class ConfigurationCacheTest {
         val firstResult = GradleRunner.create()
             .withProjectDir(projectRoot)
             .withArguments(
-                ":sample-library:compileMetroReleaseKotlin",
+                ":sample-library:compileReleaseKotlin",
                 "--configuration-cache"
             )
             .forwardOutput()
@@ -40,7 +40,7 @@ class ConfigurationCacheTest {
             "First build should either store or reuse configuration cache"
         )
 
-        val firstOutcome = firstResult.task(":sample-library:compileMetroReleaseKotlin")?.outcome
+        val firstOutcome = firstResult.task(":sample-library:compileReleaseKotlin")?.outcome
         assertTrue(
             firstOutcome == TaskOutcome.SUCCESS || firstOutcome == TaskOutcome.UP_TO_DATE,
             "Kotlin compilation should succeed or be up-to-date (got: $firstOutcome)"
@@ -50,7 +50,7 @@ class ConfigurationCacheTest {
         val secondResult = GradleRunner.create()
             .withProjectDir(projectRoot)
             .withArguments(
-                ":sample-library:compileMetroReleaseKotlin",
+                ":sample-library:compileReleaseKotlin",
                 "--configuration-cache"
             )
             .forwardOutput()
@@ -61,7 +61,7 @@ class ConfigurationCacheTest {
             "Second build should reuse configuration cache"
         )
 
-        val secondOutcome = secondResult.task(":sample-library:compileMetroReleaseKotlin")?.outcome
+        val secondOutcome = secondResult.task(":sample-library:compileReleaseKotlin")?.outcome
         assertTrue(
             secondOutcome == TaskOutcome.SUCCESS || secondOutcome == TaskOutcome.UP_TO_DATE,
             "Second build should succeed or be up-to-date (got: $secondOutcome)"
@@ -76,13 +76,13 @@ class ConfigurationCacheTest {
         val result = GradleRunner.create()
             .withProjectDir(projectRoot)
             .withArguments(
-                ":sample-library:bundleMetroReleaseAar",
+                ":sample-library:bundleReleaseAar",
                 "--configuration-cache"
             )
             .forwardOutput()
             .build()
 
-        val outcome = result.task(":sample-library:bundleMetroReleaseAar")?.outcome
+        val outcome = result.task(":sample-library:bundleReleaseAar")?.outcome
         assertTrue(
             outcome == TaskOutcome.SUCCESS || outcome == TaskOutcome.UP_TO_DATE,
             "AAR bundling should succeed with configuration cache (got: $outcome)"
@@ -91,7 +91,7 @@ class ConfigurationCacheTest {
         // Verify the KSP-generated Metro contribution exists for the contributed ViewModel.
         val generatedModule = File(
             projectRoot,
-            "sample-library/build/generated/ksp/metroRelease/kotlin/" +
+            "sample-library/build/generated/ksp/release/kotlin/" +
                 "com/deliveryhero/whetstone/sample/library/MainViewModel_WhetstoneModule.kt"
         )
         assertTrue(
@@ -113,11 +113,11 @@ class ConfigurationCacheTest {
     fun `whetstone KSP processor emits the full set of Metro contribution shapes`() {
         val result = GradleRunner.create()
             .withProjectDir(projectRoot)
-            .withArguments(":sample:assembleMetroDebug", "--configuration-cache")
+            .withArguments(":sample:assembleDebug", "--configuration-cache")
             .forwardOutput()
             .build()
 
-        val outcome = result.task(":sample:assembleMetroDebug")?.outcome
+        val outcome = result.task(":sample:assembleDebug")?.outcome
         assertTrue(
             outcome == TaskOutcome.SUCCESS || outcome == TaskOutcome.UP_TO_DATE,
             "Sample app should assemble with configuration cache (got: $outcome)"
@@ -125,7 +125,7 @@ class ConfigurationCacheTest {
 
         val genDir = File(
             projectRoot,
-            "sample/build/generated/ksp/metroDebug/kotlin/com/deliveryhero/whetstone/sample"
+            "sample/build/generated/ksp/debug/kotlin/com/deliveryhero/whetstone/sample"
         )
 
         // 1. Root @DependencyGraph generated for @ContributesAppInjector(generateAppComponent = true)

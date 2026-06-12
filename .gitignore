@@ -96,3 +96,6 @@ lint/tmp/
 # macOS
 .DS_Store
 **/.DS_Store
+
+# local migration planning notes (not tracked)
+PLAN_METRO_MIGRATION.md
