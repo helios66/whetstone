@@ -37,7 +37,7 @@ java {
 gradlePlugin {
     plugins {
         create("whetstone") {
-            id = "com.deliveryhero.whetstone"
+            id = "io.github.helios66.whetstone"
             implementationClass = "com.deliveryhero.whetstone.gradle.WhetstonePlugin"
         }
     }

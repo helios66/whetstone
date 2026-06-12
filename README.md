@@ -1,5 +1,5 @@
-[![Maven Central](https://img.shields.io/maven-central/v/com.deliveryhero.whetstone/whetstone?label=stable)](https://central.sonatype.com/artifact/com.deliveryhero.whetstone/whetstone)
-[![Snapshot](https://img.shields.io/maven-metadata/v?metadataUrl=https://central.sonatype.com/repository/maven-snapshots/com/deliveryhero/whetstone/whetstone/maven-metadata.xml&label=snapshot)](https://central.sonatype.com/repository/maven-snapshots/com/deliveryhero/whetstone/whetstone/)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.helios66/whetstone?label=stable)](https://central.sonatype.com/artifact/io.github.helios66/whetstone)
+[![Snapshot](https://img.shields.io/maven-metadata/v?metadataUrl=https://central.sonatype.com/repository/maven-snapshots/io/github/helios66/whetstone/maven-metadata.xml&label=snapshot)](https://central.sonatype.com/repository/maven-snapshots/io/github/helios66/whetstone/)
 
 # Whetstone
 
@@ -35,7 +35,7 @@ First you must apply whetstone plugin in the `build.gradle` file of any module t
 
 ```kotlin
 plugins {
-    id("com.deliveryhero.whetstone").version("<latest version>")
+    id("io.github.helios66.whetstone").version("<latest version>")
 }
 ```
 
@@ -48,12 +48,12 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath("com.deliveryhero.whetstone:whetstone-gradle-plugin:${latest_version}")
+    classpath("io.github.helios66:whetstone-gradle-plugin:${latest_version}")
   }
 }
 
 // In individual modules
-apply(plugin = "com.deliveryhero.whetstone")
+apply(plugin = "io.github.helios66.whetstone")
 ```
 
 This automatically configures Metro and KSP, and also adds the necessary whetstone dependencies for you.
@@ -82,7 +82,7 @@ Then use the snapshot version in your plugin dependency:
 
 ```kotlin
 plugins {
-    id("com.deliveryhero.whetstone").version("<version>-SNAPSHOT")
+    id("io.github.helios66.whetstone").version("<version>-SNAPSHOT")
 }
 ```
 

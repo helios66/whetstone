@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kotlinCompose)
     id("com.deliveryhero.whetstone.build")
-    id("com.deliveryhero.whetstone")
+    id("io.github.helios66.whetstone")
 }
 
 android {
