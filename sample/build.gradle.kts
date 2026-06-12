@@ -4,12 +4,30 @@ plugins {
     alias(libs.plugins.kotlinCompose)
     id("com.deliveryhero.whetstone.build")
     id("io.github.helios66.whetstone")
+    // Mundus: auto-tracing Kotlin compiler plugin (version-locked to Kotlin 2.3.20).
+    alias(libs.plugins.mundus)
 }
 
 whetstone {
     addOns {
         compose.set(true)
         workManager.set(true)
+    }
+}
+
+mundus {
+    // Trace the entire app: top-level prefix captures sample classes AND the
+    // generated Metro/Whetstone DI graph code (all under com.deliveryhero.whetstone.*).
+    includePackages.set(listOf("com.deliveryhero.whetstone"))
+    // Trace suspend functions too (background coroutine work in the ViewModel).
+    traceSuspendFunctions.set(true)
+    // 0.4.0 presets: instrument framework callbacks without widening includePackages.
+    presets {
+        compose.set(true)       // @Composable bodies
+        lifecycle.set(true)     // Activity/Fragment onCreate/onStart/onResume/onCreateView
+        viewModel.set(true)     // androidx.lifecycle.ViewModel subclasses
+        workers.set(true)       // androidx.work.ListenableWorker.doWork
+        startupPhases.set(true) // 0.5.0: Application.onCreate / ContentProvider / androidx.startup.Initializer
     }
 }
 
@@ -36,6 +54,7 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        buildConfig = true
     }
 
     testOptions {
@@ -60,6 +79,8 @@ dependencies {
     implementation(libs.androidxComposeUi)
     implementation(libs.material)
     implementation(libs.constraintlayout)
+    implementation(libs.mundusRuntime)
+    implementation(libs.mundusComposeTracing)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidxTestCore)

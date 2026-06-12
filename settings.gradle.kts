@@ -7,6 +7,8 @@ pluginManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
+        // Mundus (auto-tracing Kotlin compiler plugin) is published to mavenLocal.
+        mavenLocal()
     }
 
     includeBuild("whetstone-gradle-plugin")
@@ -18,6 +20,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // mundus-runtime
+        mavenLocal()
     }
 }
 

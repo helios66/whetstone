@@ -19,6 +19,10 @@ class MainWorker @Inject constructor(
 
     override suspend fun doWork(): Result {
         Log.i("Worker", "${dependency.getMessage("MainWorker")} on ${Thread.currentThread().name}")
+        // Extra traced work on the worker's coroutine-dispatcher thread.
+        var total = 0
+        repeat(10) { i -> total += dependency.getMessage("work-extra-$i").length }
+        Log.i("Worker", "extra work total=$total")
         return Result.success()
     }
 }

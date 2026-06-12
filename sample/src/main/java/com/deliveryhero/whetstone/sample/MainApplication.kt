@@ -12,6 +12,7 @@ import com.deliveryhero.whetstone.app.ApplicationComponentOwner
 import com.deliveryhero.whetstone.app.ContributesAppInjector
 import com.deliveryhero.whetstone.sample.MainService.Companion.NOTIFICATION_CHANNEL_ID
 import com.deliveryhero.whetstone.sample.library.MainDependency
+import com.unpopulardev.mundus.compose.MundusComposeTracing
 import javax.inject.Inject
 
 @ContributesAppInjector(generateAppComponent = true)
@@ -23,6 +24,12 @@ class MainApplication : Application(), ApplicationComponentOwner {
     override val applicationComponent = GeneratedApplicationComponent.create(this)
 
     override fun onCreate() {
+        // 0.5.0: register Mundus as Compose's CompositionTracer so real
+        // recomposition events (not just function-body slices) land in the trace.
+        // Debug-only — it explodes the trace ~15x, so keep release/baseline lean.
+        if (BuildConfig.DEBUG) {
+            MundusComposeTracing.install()
+        }
         Whetstone.inject(this)
         super.onCreate()
         Log.d("App", dependency.getMessage("Application"))

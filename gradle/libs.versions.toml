@@ -21,6 +21,7 @@ androidxTestCore = "1.7.0"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 material = "1.14.0"
+mundus = "0.5.0"
 
 [plugins]
 androidApp = { id = "com.android.application", version.ref = "agp" }
@@ -34,6 +35,7 @@ kotlinSam = { id = "org.jetbrains.kotlin.plugin.sam.with.receiver", version.ref 
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+mundus = { id = "com.unpopulardev.mundus", version.ref = "mundus" }
 
 [libraries]
 androidGradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -70,3 +72,5 @@ kctforkCore = { module = "dev.zacsweers.kctfork:core", version.ref = "kctfork" }
 kctforkKsp = { module = "dev.zacsweers.kctfork:ksp", version.ref = "kctfork" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 mavenPublish = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "mavenPublish" }
+mundusRuntime = { module = "com.unpopulardev.mundus:mundus-runtime", version.ref = "mundus" }
+mundusComposeTracing = { module = "com.unpopulardev.mundus:mundus-compose-tracing", version.ref = "mundus" }
