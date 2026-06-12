@@ -83,7 +83,8 @@ public object Whetstone {
         val injector = fromApplication<ApplicationComponent>(application)
             .membersInjectorMap[application::class] as? MembersInjector<Application>
 
-        requireNotNull(injector).injectMembers(application)
+        // Null when the class has no @Inject members (Whetstone generates no injector for it); a no-op.
+        injector?.injectMembers(application)
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectFinish(InjectedComponent.Application(application))
     }
@@ -156,7 +157,7 @@ public object Whetstone {
             .create(service)
             .membersInjectorMap[service::class] as? MembersInjector<Service>
 
-        requireNotNull(injector).injectMembers(service)
+        injector?.injectMembers(service)
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectFinish(InjectedComponent.Service(service))
     }
@@ -169,7 +170,7 @@ public object Whetstone {
             .create(view)
             .membersInjectorMap[view::class] as? MembersInjector<View>
 
-        requireNotNull(injector).injectMembers(view)
+        injector?.injectMembers(view)
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectFinish(InjectedComponent.View(view))
     }

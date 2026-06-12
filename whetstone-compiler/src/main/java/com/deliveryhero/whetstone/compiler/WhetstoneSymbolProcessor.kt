@@ -1,5 +1,7 @@
 package com.deliveryhero.whetstone.compiler
 
+import com.google.devtools.ksp.getDeclaredFunctions
+import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -75,6 +77,11 @@ internal class WhetstoneSymbolProcessor(
         // emitting one file per trigger would collide on the file name.
         val bindings = mutableListOf<ScopedProperty>()
         var generateAppGraph = false
+        // A member-injector binding (MembersInjector<T>) is only emitted when T actually has
+        // @Inject members. Metro (unlike Dagger) does not synthesise a no-op MembersInjector for a
+        // class with nothing to inject, so emitting the binding for such a class would fail to
+        // compile. Computed lazily — instance-only triggers (ViewModel/Fragment/Worker) don't need it.
+        val hasInjectableMembers by lazy { clazz.hasInjectableMembers() }
 
         for (annotation in clazz.annotations) {
             val annotationDecl = annotation.annotationType.resolve().declaration as? KSClassDeclaration
@@ -83,11 +90,11 @@ internal class WhetstoneSymbolProcessor(
 
             if (annotationFqName == CONTRIBUTES_INJECTOR) {
                 annotation.classArgument(NAME_SCOPE)?.let {
-                    bindings += ScopedProperty(it, injectorProperty(target))
+                    if (hasInjectableMembers) bindings += ScopedProperty(it, injectorProperty(target))
                 }
             } else {
                 annotationDecl.metaAnnotation(AUTO_INJECTOR_BINDING)?.classArgument(NAME_SCOPE)?.let {
-                    bindings += ScopedProperty(it, injectorProperty(target))
+                    if (hasInjectableMembers) bindings += ScopedProperty(it, injectorProperty(target))
                 }
                 annotationDecl.metaAnnotation(AUTO_INSTANCE_BINDING)?.let { meta ->
                     val base = meta.classArgument(NAME_BASE) ?: return@let
@@ -263,12 +270,35 @@ internal class WhetstoneSymbolProcessor(
     private fun KSAnnotation.booleanArgument(name: String): Boolean =
         arguments.firstOrNull { it.name?.asString() == name }?.value as? Boolean ?: false
 
+    /** True if the class — or any of its supertypes — declares an `@Inject` property or function. */
+    private fun KSClassDeclaration.hasInjectableMembers(): Boolean {
+        if (declaresInjectMember()) return true
+        return superTypes.any { superType ->
+            (superType.resolve().declaration as? KSClassDeclaration)?.hasInjectableMembers() == true
+        }
+    }
+
+    private fun KSClassDeclaration.declaresInjectMember(): Boolean =
+        getDeclaredProperties().any { it.isInjectAnnotated() } ||
+            getDeclaredFunctions().any { it.isInjectAnnotated() }
+
+    private fun KSAnnotated.isInjectAnnotated(): Boolean =
+        annotations.any {
+            it.annotationType.resolve().declaration.qualifiedName?.asString() in INJECT_FQ_NAMES
+        }
+
     private companion object {
         const val META_PACKAGE = "com.deliveryhero.whetstone.meta"
         const val AUTO_INJECTOR_BINDING = "$META_PACKAGE.AutoInjectorBinding"
         const val AUTO_INSTANCE_BINDING = "$META_PACKAGE.AutoInstanceBinding"
         const val CONTRIBUTES_INJECTOR = "com.deliveryhero.whetstone.injector.ContributesInjector"
         const val CONTRIBUTES_APP_INJECTOR = "com.deliveryhero.whetstone.app.ContributesAppInjector"
+
+        val INJECT_FQ_NAMES = setOf(
+            "javax.inject.Inject",
+            "jakarta.inject.Inject",
+            "dev.zacsweers.metro.Inject",
+        )
 
         const val NAME_SCOPE = "scope"
         const val NAME_BASE = "base"
