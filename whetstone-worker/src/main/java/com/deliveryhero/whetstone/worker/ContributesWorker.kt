@@ -14,15 +14,14 @@ import com.deliveryhero.whetstone.meta.AutoInstanceBinding
  * @ContributesWorker
  * class MyWorker @Inject constructor(parameters: WorkerParameters) : Worker()
  * ```
- * a complementary module will be generated
+ * a complementary Metro contribution will be generated
  * ```
- * @Module
  * @ContributesTo(WorkerScope::class)
- * interface MyWorkerModule {
+ * interface MyWorker_WhetstoneModule {
  *     @Binds
  *     @IntoMap
- *     @LazyClassKey(MyWorker::class)
- *     fun binds(target: MyWorker): ListenableWorker
+ *     @ClassKey(MyWorker::class)
+ *     val MyWorker.bindMyWorker: ListenableWorker
  * }
  * ```
  */

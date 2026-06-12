@@ -14,15 +14,14 @@ import com.deliveryhero.whetstone.meta.AutoInstanceBinding
  * @ContributesFragment
  * class MyFragment @Inject constructor() : Fragment()
  * ```
- * a complementary module will be generated
+ * a complementary Metro contribution will be generated
  * ```
- * @Module
  * @ContributesTo(FragmentScope::class)
- * interface MyFragmentModule {
+ * interface MyFragment_WhetstoneModule {
  *     @Binds
  *     @IntoMap
- *     @LazyClassKey(MyFragment::class)
- *     fun binds(target: MyFragment): Fragment
+ *     @ClassKey(MyFragment::class)
+ *     val MyFragment.bindMyFragment: Fragment
  * }
  * ```
  */

@@ -13,15 +13,14 @@ import com.deliveryhero.whetstone.meta.AutoInjectorBinding
  * @ContributesActivityInjector
  * class MyActivity : Activity()
  * ```
- * a complementary module will be generated
+ * a complementary Metro contribution will be generated
  * ```
- * @Module
  * @ContributesTo(ActivityScope::class)
- * interface MyActivityModule {
+ * interface MyActivity_WhetstoneModule {
  *     @Binds
  *     @IntoMap
- *     @LazyClassKey(MyActivity::class)
- *     fun binds(target: MembersInjector<MyActivity>): MembersInjector<*>
+ *     @ClassKey(MyActivity::class)
+ *     val MembersInjector<MyActivity>.bindMyActivityInjector: MembersInjector<*>
  * }
  * ```
  */

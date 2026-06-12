@@ -13,15 +13,14 @@ import com.deliveryhero.whetstone.meta.AutoInjectorBinding
  * @ContributesViewInjector
  * class MyView : View()
  * ```
- * a complementary module will be generated
+ * a complementary Metro contribution will be generated
  * ```
- * @Module
  * @ContributesTo(ViewScope::class)
- * interface MyViewModule {
+ * interface MyView_WhetstoneModule {
  *     @Binds
  *     @IntoMap
- *     @LazyClassKey(MyView::class)
- *     fun binds(target: MembersInjector<MyView>): MembersInjector<*>
+ *     @ClassKey(MyView::class)
+ *     val MembersInjector<MyView>.bindMyViewInjector: MembersInjector<*>
  * }
  * ```
  */
