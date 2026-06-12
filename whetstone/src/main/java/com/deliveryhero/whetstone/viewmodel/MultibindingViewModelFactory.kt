@@ -4,14 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.app.ApplicationScope
-import com.squareup.anvil.annotations.ContributesBinding
-import dagger.Reusable
-import javax.inject.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
-@Reusable
 @ContributesBinding(ApplicationScope::class)
-public class MultibindingViewModelFactory @Inject constructor(
+@SingleIn(ApplicationScope::class)
+@Inject
+public class MultibindingViewModelFactory(
     private val viewModelComponentFactory: ViewModelComponent.Factory,
 ) : ViewModelProvider.Factory {
 
@@ -21,13 +22,13 @@ public class MultibindingViewModelFactory @Inject constructor(
         val viewModelComponent = viewModelComponentFactory.create(handle)
         val viewModelMap = viewModelComponent.viewModelMap
 
-        val viewModelProvider = viewModelMap.getOrElse(modelClass) {
+        val viewModelProvider = viewModelMap.getOrElse(modelClass.kotlin) {
             error(
                 "${modelClass.name} could not be instantiated. Did you forget to contribute it? Ensure the " +
                         "view model class is annotated with '${ContributesViewModel::class.java.name}' " +
                         "and has an '@Inject constructor'"
             )
         }
-        return viewModelProvider.get() as T
+        return viewModelProvider.invoke() as T
     }
 }

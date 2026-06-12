@@ -7,7 +7,6 @@ plugins {
 }
 
 whetstone {
-    generateDaggerFactories = false
     addOns {
         compose.set(true)
         workManager.set(true)
@@ -20,7 +19,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         applicationId = "com.deliveryhero.whetstone.sample"
-        targetSdk = 35
+        targetSdk = 36
     }
 
     buildTypes {
@@ -39,29 +38,15 @@ android {
         viewBinding = true
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-
-    val dimensionName = "di_dimension"
-    flavorDimensions += dimensionName
-    productFlavors {
-        register("hilt") {
-            dimension = dimensionName
-        }
-        register("metro") {
-            dimension = dimensionName
-        }
-    }
-}
-
-kapt {
-    javacOptions {
-        option("-Adagger.fastInit=enabled")
     }
 }
 
@@ -76,6 +61,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.constraintlayout)
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidxTestCore)
+    testImplementation(kotlin("test-junit"))
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 }

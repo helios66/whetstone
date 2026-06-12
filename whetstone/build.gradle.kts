@@ -2,16 +2,14 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("com.deliveryhero.whetstone.build")
-    id("com.squareup.anvil")
+    id("dev.zacsweers.metro")
     id("com.vanniktech.maven.publish")
 }
 
-anvil {
-    generateDaggerFactories.set(true)
-}
-
 dependencies {
-    api(libs.dagger)
+    // Whetstone consumers use the JSR-330 javax.inject annotations; expose them transitively.
+    // Metro is configured (by the Gradle plugin) to treat them as injection points.
+    api(libs.javaxInject)
 
     implementation(libs.androidxLifecycleRuntime)
     implementation(libs.androidxLifecycleProcess)
@@ -24,8 +22,6 @@ dependencies {
 
     testImplementation(kotlin("test-junit"))
     testImplementation(kotlin("reflect"))
-    testImplementation(testFixtures(libs.anvilCompilerUtils))
-    testImplementation(projects.whetstoneCompiler)
 }
 android {
     namespace = "com.deliveryhero.whetstone"

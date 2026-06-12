@@ -1,107 +1,4 @@
-public final class anvil/hint/Com_deliveryhero_whetstone_activity_ActivityComponent_3fdda31bKt {
-	public static final fun getCom_deliveryhero_whetstone_activity_ActivityComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_activity_ActivityComponent_scope ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_activity_ActivityComponent_ParentComponent_035eef4dKt {
-	public static final fun getCom_deliveryhero_whetstone_activity_ActivityComponent_ParentComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_activity_ActivityComponent_ParentComponent_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_activity_ActivityModule_5b7f7669Kt {
-	public static final fun getCom_deliveryhero_whetstone_activity_ActivityModule_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_activity_ActivityModule_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_app_ApplicationComponent_316ef975Kt {
-	public static final fun getCom_deliveryhero_whetstone_app_ApplicationComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_app_ApplicationComponent_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_app_ApplicationModule_473f3419Kt {
-	public static final fun getCom_deliveryhero_whetstone_app_ApplicationModule_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_app_ApplicationModule_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_fragment_FragmentComponent_ParentComponent_cde76f8cKt {
-	public static final fun getCom_deliveryhero_whetstone_fragment_FragmentComponent_ParentComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_fragment_FragmentComponent_ParentComponent_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_fragment_FragmentComponent_f204c6f2Kt {
-	public static final fun getCom_deliveryhero_whetstone_fragment_FragmentComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_fragment_FragmentComponent_scope ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_fragment_FragmentModule_cc8c2691Kt {
-	public static final fun getCom_deliveryhero_whetstone_fragment_FragmentModule_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_fragment_FragmentModule_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_fragment_MultibindingFragmentFactory_FragmentFactory_ActivityScope_BindingModule_d15c98a4_d333a1e3Kt {
-	public static final fun getCom_deliveryhero_whetstone_fragment_MultibindingFragmentFactory_FragmentFactory_ActivityScope_BindingModule_d15c98a4_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_fragment_MultibindingFragmentFactory_FragmentFactory_ActivityScope_BindingModule_d15c98a4_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_service_ServiceComponent_ParentComponent_066b8ad5Kt {
-	public static final fun getCom_deliveryhero_whetstone_service_ServiceComponent_ParentComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_service_ServiceComponent_ParentComponent_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_service_ServiceComponent_a0d6da09Kt {
-	public static final fun getCom_deliveryhero_whetstone_service_ServiceComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_service_ServiceComponent_scope ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_service_ServiceModule_8bf70368Kt {
-	public static final fun getCom_deliveryhero_whetstone_service_ServiceModule_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_service_ServiceModule_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_view_ViewComponent_ParentComponent_f3eb3fe6Kt {
-	public static final fun getCom_deliveryhero_whetstone_view_ViewComponent_ParentComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_view_ViewComponent_ParentComponent_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_view_ViewComponent_ee8b1710Kt {
-	public static final fun getCom_deliveryhero_whetstone_view_ViewComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_view_ViewComponent_scope ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_view_ViewModule_e1730f07Kt {
-	public static final fun getCom_deliveryhero_whetstone_view_ViewModule_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_view_ViewModule_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_viewmodel_MultibindingViewModelFactory_Factory_ApplicationScope_BindingModule_a5198556_22d0d52aKt {
-	public static final fun getCom_deliveryhero_whetstone_viewmodel_MultibindingViewModelFactory_Factory_ApplicationScope_BindingModule_a5198556_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_viewmodel_MultibindingViewModelFactory_Factory_ApplicationScope_BindingModule_a5198556_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_viewmodel_ViewModelComponent_ParentComponent_d29504e9Kt {
-	public static final fun getCom_deliveryhero_whetstone_viewmodel_ViewModelComponent_ParentComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_viewmodel_ViewModelComponent_ParentComponent_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_viewmodel_ViewModelComponent_dd4187b0Kt {
-	public static final fun getCom_deliveryhero_whetstone_viewmodel_ViewModelComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_viewmodel_ViewModelComponent_scope ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_viewmodel_ViewModelModule_64a386b9Kt {
-	public static final fun getCom_deliveryhero_whetstone_viewmodel_ViewModelModule_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_viewmodel_ViewModelModule_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public abstract interface annotation class com/deliveryhero/whetstone/ForScope : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/Class;
-}
-
 public abstract interface annotation class com/deliveryhero/whetstone/InternalWhetstoneApi : java/lang/annotation/Annotation {
-}
-
-public abstract interface annotation class com/deliveryhero/whetstone/SingleIn : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/Class;
 }
 
 public final class com/deliveryhero/whetstone/Whetstone {
@@ -120,16 +17,15 @@ public abstract interface class com/deliveryhero/whetstone/activity/ActivityComp
 	public abstract fun getMembersInjectorMap ()Ljava/util/Map;
 }
 
+public abstract class com/deliveryhero/whetstone/activity/ActivityComponent$BindsMirror {
+	public abstract fun membersInjectorMap4205200196 ()Ljava/util/Map;
+}
+
 public abstract interface class com/deliveryhero/whetstone/activity/ActivityComponent$Factory {
 	public abstract fun create (Landroid/app/Activity;)Lcom/deliveryhero/whetstone/activity/ActivityComponent;
 }
 
-public abstract interface class com/deliveryhero/whetstone/activity/ActivityComponent$ParentComponent {
-	public abstract fun getActivityComponentFactory ()Lcom/deliveryhero/whetstone/activity/ActivityComponent$Factory;
-}
-
-public abstract interface class com/deliveryhero/whetstone/activity/ActivityModule {
-	public abstract fun membersInjectors ()Ljava/util/Map;
+public abstract interface class com/deliveryhero/whetstone/activity/ActivityComponent$Factory$MetroContributionToApplicationScope : com/deliveryhero/whetstone/activity/ActivityComponent$Factory {
 }
 
 public final class com/deliveryhero/whetstone/activity/ActivityScope {
@@ -143,6 +39,10 @@ public abstract interface class com/deliveryhero/whetstone/app/ApplicationCompon
 	public abstract fun getViewModelFactory ()Landroidx/lifecycle/ViewModelProvider$Factory;
 }
 
+public abstract class com/deliveryhero/whetstone/app/ApplicationComponent$BindsMirror {
+	public abstract fun membersInjectorMap4205200196 ()Ljava/util/Map;
+}
+
 public abstract interface class com/deliveryhero/whetstone/app/ApplicationComponent$Factory {
 	public abstract fun create (Landroid/app/Application;)Lcom/deliveryhero/whetstone/app/ApplicationComponent;
 }
@@ -153,8 +53,11 @@ public abstract interface class com/deliveryhero/whetstone/app/ApplicationCompon
 
 public abstract interface class com/deliveryhero/whetstone/app/ApplicationModule {
 	public static final field Companion Lcom/deliveryhero/whetstone/app/ApplicationModule$Companion;
-	public abstract fun bindContext (Landroid/app/Application;)Landroid/content/Context;
-	public abstract fun membersInjectors ()Ljava/util/Map;
+	public fun getBindContext (Landroid/app/Application;)Landroid/content/Context;
+}
+
+public abstract class com/deliveryhero/whetstone/app/ApplicationModule$BindsMirror {
+	public abstract fun bindContext1386545977 (Landroid/app/Application;)Landroid/content/Context;
 }
 
 public final class com/deliveryhero/whetstone/app/ApplicationModule$Companion {
@@ -162,26 +65,31 @@ public final class com/deliveryhero/whetstone/app/ApplicationModule$Companion {
 	public final fun provideLifecycleOwner ()Landroidx/lifecycle/LifecycleOwner;
 }
 
-public final class com/deliveryhero/whetstone/app/ApplicationModule_Companion_ProvideCoroutineScopeFactory : dagger/internal/Factory {
-	public static final field Companion Lcom/deliveryhero/whetstone/app/ApplicationModule_Companion_ProvideCoroutineScopeFactory$Companion;
-	public fun <init> (Ldagger/internal/Provider;)V
-	public static final fun create (Ldagger/internal/Provider;)Lcom/deliveryhero/whetstone/app/ApplicationModule_Companion_ProvideCoroutineScopeFactory;
-	public synthetic fun get ()Ljava/lang/Object;
-	public fun get ()Lkotlinx/coroutines/CoroutineScope;
+public final class com/deliveryhero/whetstone/app/ApplicationModule$Companion$ProvideCoroutineScopeMetroFactory : dev/zacsweers/metro/internal/Factory {
+	public static final field Companion Lcom/deliveryhero/whetstone/app/ApplicationModule$Companion$ProvideCoroutineScopeMetroFactory$Companion;
+	public synthetic fun <init> (Ldev/zacsweers/metro/Provider;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/app/ApplicationModule$Companion$ProvideCoroutineScopeMetroFactory;
+	public synthetic fun invoke ()Ljava/lang/Object;
+	public final fun invoke ()Lkotlinx/coroutines/CoroutineScope;
+	public final fun mirrorFunction (Landroidx/lifecycle/LifecycleOwner;)Lkotlinx/coroutines/CoroutineScope;
 	public static final fun provideCoroutineScope (Landroidx/lifecycle/LifecycleOwner;)Lkotlinx/coroutines/CoroutineScope;
 }
 
-public final class com/deliveryhero/whetstone/app/ApplicationModule_Companion_ProvideCoroutineScopeFactory$Companion {
-	public final fun create (Ldagger/internal/Provider;)Lcom/deliveryhero/whetstone/app/ApplicationModule_Companion_ProvideCoroutineScopeFactory;
+public final class com/deliveryhero/whetstone/app/ApplicationModule$Companion$ProvideCoroutineScopeMetroFactory$Companion {
+	public final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/app/ApplicationModule$Companion$ProvideCoroutineScopeMetroFactory;
 	public final fun provideCoroutineScope (Landroidx/lifecycle/LifecycleOwner;)Lkotlinx/coroutines/CoroutineScope;
 }
 
-public final class com/deliveryhero/whetstone/app/ApplicationModule_Companion_ProvideLifecycleOwnerFactory : dagger/internal/Factory {
-	public static final field INSTANCE Lcom/deliveryhero/whetstone/app/ApplicationModule_Companion_ProvideLifecycleOwnerFactory;
-	public static final fun create ()Lcom/deliveryhero/whetstone/app/ApplicationModule_Companion_ProvideLifecycleOwnerFactory;
-	public fun get ()Landroidx/lifecycle/LifecycleOwner;
-	public synthetic fun get ()Ljava/lang/Object;
+public final class com/deliveryhero/whetstone/app/ApplicationModule$Companion$ProvideLifecycleOwnerMetroFactory : dev/zacsweers/metro/internal/Factory {
+	public static final field INSTANCE Lcom/deliveryhero/whetstone/app/ApplicationModule$Companion$ProvideLifecycleOwnerMetroFactory;
+	public static final fun create ()Lcom/deliveryhero/whetstone/app/ApplicationModule$Companion$ProvideLifecycleOwnerMetroFactory;
+	public final fun invoke ()Landroidx/lifecycle/LifecycleOwner;
+	public synthetic fun invoke ()Ljava/lang/Object;
+	public final fun mirrorFunction ()Landroidx/lifecycle/LifecycleOwner;
 	public static final fun provideLifecycleOwner ()Landroidx/lifecycle/LifecycleOwner;
+}
+
+public abstract interface class com/deliveryhero/whetstone/app/ApplicationModule$MetroContributionToApplicationScope : com/deliveryhero/whetstone/app/ApplicationModule {
 }
 
 public final class com/deliveryhero/whetstone/app/ApplicationScope {
@@ -232,16 +140,15 @@ public abstract interface class com/deliveryhero/whetstone/fragment/FragmentComp
 	public abstract fun getFragmentMap ()Ljava/util/Map;
 }
 
+public abstract class com/deliveryhero/whetstone/fragment/FragmentComponent$BindsMirror {
+	public abstract fun fragmentMap4205200196 ()Ljava/util/Map;
+}
+
 public abstract interface class com/deliveryhero/whetstone/fragment/FragmentComponent$Factory {
 	public abstract fun create ()Lcom/deliveryhero/whetstone/fragment/FragmentComponent;
 }
 
-public abstract interface class com/deliveryhero/whetstone/fragment/FragmentComponent$ParentComponent {
-	public abstract fun getFragmentComponentFactory ()Lcom/deliveryhero/whetstone/fragment/FragmentComponent$Factory;
-}
-
-public abstract interface class com/deliveryhero/whetstone/fragment/FragmentModule {
-	public abstract fun provideFragments ()Ljava/util/Map;
+public abstract interface class com/deliveryhero/whetstone/fragment/FragmentComponent$Factory$MetroContributionToActivityScope : com/deliveryhero/whetstone/fragment/FragmentComponent$Factory {
 }
 
 public final class com/deliveryhero/whetstone/fragment/FragmentScope {
@@ -252,22 +159,27 @@ public final class com/deliveryhero/whetstone/fragment/MultibindingFragmentFacto
 	public fun instantiate (Ljava/lang/ClassLoader;Ljava/lang/String;)Landroidx/fragment/app/Fragment;
 }
 
-public final class com/deliveryhero/whetstone/fragment/MultibindingFragmentFactory_Factory : dagger/internal/Factory {
-	public static final field Companion Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory_Factory$Companion;
-	public fun <init> (Ldagger/internal/Provider;)V
-	public static final fun create (Ldagger/internal/Provider;)Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory_Factory;
-	public fun get ()Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;
-	public synthetic fun get ()Ljava/lang/Object;
+public abstract interface class com/deliveryhero/whetstone/fragment/MultibindingFragmentFactory$MetroContributionToActivityScope {
+	public fun bindsAsFragmentFactory (Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;)Landroidx/fragment/app/FragmentFactory;
+}
+
+public abstract class com/deliveryhero/whetstone/fragment/MultibindingFragmentFactory$MetroContributionToActivityScope$BindsMirror {
+	public abstract fun bindsAsFragmentFactory (Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;)Landroidx/fragment/app/FragmentFactory;
+}
+
+public final class com/deliveryhero/whetstone/fragment/MultibindingFragmentFactory$MetroFactory : dev/zacsweers/metro/internal/Factory {
+	public static final field Companion Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory$MetroFactory$Companion;
+	public synthetic fun <init> (Ldev/zacsweers/metro/Provider;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory$MetroFactory;
+	public final fun invoke ()Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;
+	public synthetic fun invoke ()Ljava/lang/Object;
+	public final fun mirrorFunction (Lcom/deliveryhero/whetstone/fragment/FragmentComponent$Factory;)Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;
 	public static final fun newInstance (Lcom/deliveryhero/whetstone/fragment/FragmentComponent$Factory;)Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;
 }
 
-public final class com/deliveryhero/whetstone/fragment/MultibindingFragmentFactory_Factory$Companion {
-	public final fun create (Ldagger/internal/Provider;)Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory_Factory;
+public final class com/deliveryhero/whetstone/fragment/MultibindingFragmentFactory$MetroFactory$Companion {
+	public final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory$MetroFactory;
 	public final fun newInstance (Lcom/deliveryhero/whetstone/fragment/FragmentComponent$Factory;)Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;
-}
-
-public abstract interface class com/deliveryhero/whetstone/fragment/MultibindingFragmentFactory_FragmentFactory_ActivityScope_BindingModule_d15c98a4 {
-	public abstract fun bindFragmentFactory (Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;)Landroidx/fragment/app/FragmentFactory;
 }
 
 public abstract interface annotation class com/deliveryhero/whetstone/injector/ContributesInjector : java/lang/annotation/Annotation {
@@ -290,16 +202,15 @@ public abstract interface class com/deliveryhero/whetstone/service/ServiceCompon
 	public abstract fun getMembersInjectorMap ()Ljava/util/Map;
 }
 
+public abstract class com/deliveryhero/whetstone/service/ServiceComponent$BindsMirror {
+	public abstract fun membersInjectorMap4205200196 ()Ljava/util/Map;
+}
+
 public abstract interface class com/deliveryhero/whetstone/service/ServiceComponent$Factory {
 	public abstract fun create (Landroid/app/Service;)Lcom/deliveryhero/whetstone/service/ServiceComponent;
 }
 
-public abstract interface class com/deliveryhero/whetstone/service/ServiceComponent$ParentComponent {
-	public abstract fun getServiceComponentFactory ()Lcom/deliveryhero/whetstone/service/ServiceComponent$Factory;
-}
-
-public abstract interface class com/deliveryhero/whetstone/service/ServiceModule {
-	public abstract fun membersInjectors ()Ljava/util/Map;
+public abstract interface class com/deliveryhero/whetstone/service/ServiceComponent$Factory$MetroContributionToApplicationScope : com/deliveryhero/whetstone/service/ServiceComponent$Factory {
 }
 
 public final class com/deliveryhero/whetstone/service/ServiceScope {
@@ -312,16 +223,15 @@ public abstract interface class com/deliveryhero/whetstone/view/ViewComponent {
 	public abstract fun getMembersInjectorMap ()Ljava/util/Map;
 }
 
+public abstract class com/deliveryhero/whetstone/view/ViewComponent$BindsMirror {
+	public abstract fun membersInjectorMap4205200196 ()Ljava/util/Map;
+}
+
 public abstract interface class com/deliveryhero/whetstone/view/ViewComponent$Factory {
 	public abstract fun create (Landroid/view/View;)Lcom/deliveryhero/whetstone/view/ViewComponent;
 }
 
-public abstract interface class com/deliveryhero/whetstone/view/ViewComponent$ParentComponent {
-	public abstract fun getViewComponentFactory ()Lcom/deliveryhero/whetstone/view/ViewComponent$Factory;
-}
-
-public abstract interface class com/deliveryhero/whetstone/view/ViewModule {
-	public abstract fun membersInjectors ()Ljava/util/Map;
+public abstract interface class com/deliveryhero/whetstone/view/ViewComponent$Factory$MetroContributionToActivityScope : com/deliveryhero/whetstone/view/ViewComponent$Factory {
 }
 
 public final class com/deliveryhero/whetstone/view/ViewScope {
@@ -335,38 +245,42 @@ public final class com/deliveryhero/whetstone/viewmodel/MultibindingViewModelFac
 	public fun create (Ljava/lang/Class;Landroidx/lifecycle/viewmodel/CreationExtras;)Landroidx/lifecycle/ViewModel;
 }
 
-public final class com/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory_Factory : dagger/internal/Factory {
-	public static final field Companion Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory_Factory$Companion;
-	public fun <init> (Ldagger/internal/Provider;)V
-	public static final fun create (Ldagger/internal/Provider;)Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory_Factory;
-	public fun get ()Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory;
-	public synthetic fun get ()Ljava/lang/Object;
+public abstract interface class com/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory$MetroContributionToApplicationScope {
+	public fun bindsAsViewModelProviderFactory (Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory;)Landroidx/lifecycle/ViewModelProvider$Factory;
+}
+
+public abstract class com/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory$MetroContributionToApplicationScope$BindsMirror {
+	public abstract fun bindsAsViewModelProviderFactory (Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory;)Landroidx/lifecycle/ViewModelProvider$Factory;
+}
+
+public final class com/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory$MetroFactory : dev/zacsweers/metro/internal/Factory {
+	public static final field Companion Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory$MetroFactory$Companion;
+	public synthetic fun <init> (Ldev/zacsweers/metro/Provider;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory$MetroFactory;
+	public final fun invoke ()Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory;
+	public synthetic fun invoke ()Ljava/lang/Object;
+	public final fun mirrorFunction (Lcom/deliveryhero/whetstone/viewmodel/ViewModelComponent$Factory;)Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory;
 	public static final fun newInstance (Lcom/deliveryhero/whetstone/viewmodel/ViewModelComponent$Factory;)Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory;
 }
 
-public final class com/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory_Factory$Companion {
-	public final fun create (Ldagger/internal/Provider;)Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory_Factory;
+public final class com/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory$MetroFactory$Companion {
+	public final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory$MetroFactory;
 	public final fun newInstance (Lcom/deliveryhero/whetstone/viewmodel/ViewModelComponent$Factory;)Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory;
-}
-
-public abstract interface class com/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory_Factory_ApplicationScope_BindingModule_a5198556 {
-	public abstract fun bindFactory (Lcom/deliveryhero/whetstone/viewmodel/MultibindingViewModelFactory;)Landroidx/lifecycle/ViewModelProvider$Factory;
 }
 
 public abstract interface class com/deliveryhero/whetstone/viewmodel/ViewModelComponent {
 	public abstract fun getViewModelMap ()Ljava/util/Map;
 }
 
+public abstract class com/deliveryhero/whetstone/viewmodel/ViewModelComponent$BindsMirror {
+	public abstract fun viewModelMap4205200196 ()Ljava/util/Map;
+}
+
 public abstract interface class com/deliveryhero/whetstone/viewmodel/ViewModelComponent$Factory {
 	public abstract fun create (Landroidx/lifecycle/SavedStateHandle;)Lcom/deliveryhero/whetstone/viewmodel/ViewModelComponent;
 }
 
-public abstract interface class com/deliveryhero/whetstone/viewmodel/ViewModelComponent$ParentComponent {
-	public abstract fun getViewModelComponentFactory ()Lcom/deliveryhero/whetstone/viewmodel/ViewModelComponent$Factory;
-}
-
-public abstract interface class com/deliveryhero/whetstone/viewmodel/ViewModelModule {
-	public abstract fun provideViewModel ()Ljava/util/Map;
+public abstract interface class com/deliveryhero/whetstone/viewmodel/ViewModelComponent$Factory$MetroContributionToApplicationScope : com/deliveryhero/whetstone/viewmodel/ViewModelComponent$Factory {
 }
 
 public final class com/deliveryhero/whetstone/viewmodel/ViewModelScope {

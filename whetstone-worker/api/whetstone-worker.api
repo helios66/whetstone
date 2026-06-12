@@ -1,23 +1,3 @@
-public final class anvil/hint/Com_deliveryhero_whetstone_worker_MultibindingWorkerFactory_WorkerFactory_ApplicationScope_BindingModule_da3294bd_c3e9afb4Kt {
-	public static final fun getCom_deliveryhero_whetstone_worker_MultibindingWorkerFactory_WorkerFactory_ApplicationScope_BindingModule_da3294bd_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_worker_MultibindingWorkerFactory_WorkerFactory_ApplicationScope_BindingModule_da3294bd_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_worker_WorkerComponent_ParentComponent_2ef604f9Kt {
-	public static final fun getCom_deliveryhero_whetstone_worker_WorkerComponent_ParentComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_worker_WorkerComponent_ParentComponent_scope0 ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_worker_WorkerComponent_ea674893Kt {
-	public static final fun getCom_deliveryhero_whetstone_worker_WorkerComponent_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_worker_WorkerComponent_scope ()Lkotlin/reflect/KClass;
-}
-
-public final class anvil/hint/Com_deliveryhero_whetstone_worker_WorkerModule_e43d7815Kt {
-	public static final fun getCom_deliveryhero_whetstone_worker_WorkerModule_reference ()Lkotlin/reflect/KClass;
-	public static final fun getCom_deliveryhero_whetstone_worker_WorkerModule_scope0 ()Lkotlin/reflect/KClass;
-}
-
 public abstract interface annotation class com/deliveryhero/whetstone/worker/ContributesWorker : java/lang/annotation/Annotation {
 }
 
@@ -26,22 +6,27 @@ public final class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory :
 	public fun createWorker (Landroid/content/Context;Ljava/lang/String;Landroidx/work/WorkerParameters;)Landroidx/work/ListenableWorker;
 }
 
-public final class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory_Factory : dagger/internal/Factory {
-	public static final field Companion Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory_Factory$Companion;
-	public fun <init> (Ldagger/internal/Provider;)V
-	public static final fun create (Ldagger/internal/Provider;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory_Factory;
-	public fun get ()Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
-	public synthetic fun get ()Ljava/lang/Object;
+public abstract interface class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroContributionToApplicationScope {
+	public fun bindsAsWorkerFactory (Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;)Landroidx/work/WorkerFactory;
+}
+
+public abstract class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroContributionToApplicationScope$BindsMirror {
+	public abstract fun bindsAsWorkerFactory (Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;)Landroidx/work/WorkerFactory;
+}
+
+public final class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory : dev/zacsweers/metro/internal/Factory {
+	public static final field Companion Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory$Companion;
+	public synthetic fun <init> (Ldev/zacsweers/metro/Provider;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory;
+	public final fun invoke ()Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
+	public synthetic fun invoke ()Ljava/lang/Object;
+	public final fun mirrorFunction (Lcom/deliveryhero/whetstone/worker/WorkerComponent$Factory;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
 	public static final fun newInstance (Lcom/deliveryhero/whetstone/worker/WorkerComponent$Factory;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
 }
 
-public final class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory_Factory$Companion {
-	public final fun create (Ldagger/internal/Provider;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory_Factory;
+public final class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory$Companion {
+	public final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory;
 	public final fun newInstance (Lcom/deliveryhero/whetstone/worker/WorkerComponent$Factory;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
-}
-
-public abstract interface class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory_WorkerFactory_ApplicationScope_BindingModule_da3294bd {
-	public abstract fun bindWorkerFactory (Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;)Landroidx/work/WorkerFactory;
 }
 
 public final class com/deliveryhero/whetstone/worker/WhetstoneWorkerInitializer : androidx/startup/Initializer {
@@ -55,17 +40,22 @@ public abstract interface class com/deliveryhero/whetstone/worker/WorkerComponen
 	public abstract fun getWorkerMap ()Ljava/util/Map;
 }
 
+public abstract class com/deliveryhero/whetstone/worker/WorkerComponent$BindsMirror {
+	public abstract fun workerMap4205200196 ()Ljava/util/Map;
+}
+
 public abstract interface class com/deliveryhero/whetstone/worker/WorkerComponent$Factory {
 	public abstract fun create (Landroid/content/Context;Landroidx/work/WorkerParameters;)Lcom/deliveryhero/whetstone/worker/WorkerComponent;
 }
 
-public abstract interface class com/deliveryhero/whetstone/worker/WorkerComponent$ParentComponent {
-	public abstract fun getWorkerComponentFactory ()Lcom/deliveryhero/whetstone/worker/WorkerComponent$Factory;
+public abstract interface class com/deliveryhero/whetstone/worker/WorkerComponent$Factory$MetroContributionToApplicationScope : com/deliveryhero/whetstone/worker/WorkerComponent$Factory {
+}
+
+public abstract interface class com/deliveryhero/whetstone/worker/WorkerFactoryProvider {
 	public abstract fun getWorkerFactory ()Landroidx/work/WorkerFactory;
 }
 
-public abstract interface class com/deliveryhero/whetstone/worker/WorkerModule {
-	public abstract fun provideWorkers ()Ljava/util/Map;
+public abstract interface class com/deliveryhero/whetstone/worker/WorkerFactoryProvider$MetroContributionToApplicationScope : com/deliveryhero/whetstone/worker/WorkerFactoryProvider {
 }
 
 public final class com/deliveryhero/whetstone/worker/WorkerScope {

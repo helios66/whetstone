@@ -5,36 +5,17 @@ plugins {
     id("com.deliveryhero.whetstone")
 }
 
-whetstone {
-    generateDaggerFactories = true
-    syncGeneratedSources = false
-}
-
 android {
     namespace = "com.deliveryhero.whetstone.sample.library"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-
-    val dimensionName = "di_dimension"
-    flavorDimensions += dimensionName
-    productFlavors {
-        register("hilt") {
-            dimension = dimensionName
-        }
-        register("metro") {
-            dimension = dimensionName
-        }
     }
 }
 

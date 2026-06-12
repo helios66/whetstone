@@ -5,35 +5,41 @@ import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
 import com.deliveryhero.whetstone.ForScope
-import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.app.ApplicationScope
-import com.squareup.anvil.annotations.ContributesSubcomponent
-import com.squareup.anvil.annotations.ContributesTo
-import dagger.BindsInstance
-import javax.inject.Provider
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.GraphExtension
+import dev.zacsweers.metro.Multibinds
+import dev.zacsweers.metro.Provides
+import kotlin.reflect.KClass
 
 /**
- * A Dagger component that has the lifetime of the [androidx.work.ListenableWorker].
+ * A Metro graph extension that has the lifetime of the [androidx.work.ListenableWorker].
  */
-@ContributesSubcomponent(scope = WorkerScope::class, parentScope = ApplicationScope::class)
-@SingleIn(WorkerScope::class)
+@GraphExtension(WorkerScope::class)
 public interface WorkerComponent {
-    public val workerMap: Map<Class<*>, Provider<ListenableWorker>>
+
+    @Multibinds(allowEmpty = true)
+    public val workerMap: Map<KClass<*>, () -> ListenableWorker>
 
     /**
-     * Interface for creating an [WorkerComponent].
+     * Interface for creating a [WorkerComponent]. Contributed to [ApplicationScope] so the
+     * application graph exposes it.
      */
-    @ContributesSubcomponent.Factory
+    @GraphExtension.Factory
+    @ContributesTo(ApplicationScope::class)
     public interface Factory {
         public fun create(
-            @BindsInstance @ForScope(WorkerScope::class) appContext: Context,
-            @BindsInstance parameters: WorkerParameters
+            @Provides @ForScope(WorkerScope::class) appContext: Context,
+            @Provides parameters: WorkerParameters
         ): WorkerComponent
     }
+}
 
-    @ContributesTo(ApplicationScope::class)
-    public interface ParentComponent {
-        public fun getWorkerComponentFactory(): Factory
-        public fun getWorkerFactory(): WorkerFactory
-    }
+/**
+ * Exposes the [WorkerFactory] (bound by [MultibindingWorkerFactory]) on the application graph so
+ * the WorkManager initializer can install it.
+ */
+@ContributesTo(ApplicationScope::class)
+public interface WorkerFactoryProvider {
+    public val workerFactory: WorkerFactory
 }

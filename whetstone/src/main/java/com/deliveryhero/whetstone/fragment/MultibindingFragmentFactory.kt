@@ -2,28 +2,28 @@ package com.deliveryhero.whetstone.fragment
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentFactory
+import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.activity.ActivityScope
-import com.squareup.anvil.annotations.ContributesBinding
-import dagger.Reusable
-import javax.inject.Inject
-import javax.inject.Provider
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 /**
- * A [FragmentFactory] that can hold onto multiple other FragmentFactory [Provider]'s.
+ * A [FragmentFactory] that delegates to the per-fragment provider lambdas contributed via
+ * [ContributesFragment].
  */
-@Reusable
 @ContributesBinding(ActivityScope::class)
-public class MultibindingFragmentFactory @Inject constructor(
+@SingleIn(ActivityScope::class)
+@Inject
+public class MultibindingFragmentFactory(
     private val fragmentComponentFactory: FragmentComponent.Factory
 ) : FragmentFactory() {
 
     override fun instantiate(classLoader: ClassLoader, className: String): Fragment {
         val fragmentComponent = fragmentComponentFactory.create()
         val fragmentClass = loadFragmentClass(classLoader, className)
-        val fragmentMap = fragmentComponent.fragmentMap
-        val fragmentProvider = fragmentMap[fragmentClass]
+        val fragmentProvider = fragmentComponent.fragmentMap[fragmentClass.kotlin]
         return try {
-            fragmentProvider?.get() ?: super.instantiate(classLoader, className)
+            fragmentProvider?.invoke() ?: super.instantiate(classLoader, className)
         } catch (throwable: Throwable) {
             throw if (fragmentProvider == null)
                 IllegalStateException(

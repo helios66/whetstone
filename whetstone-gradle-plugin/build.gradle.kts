@@ -5,7 +5,6 @@ import java.util.Properties
 plugins {
     id("java-gradle-plugin")
     `kotlin-dsl`
-    alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.mavenPublish)
 }
 
@@ -23,14 +22,16 @@ fun loadParentProperties() {
 }
 
 kotlin {
-    jvmToolchain(17)
+    // Metro's Gradle plugin (a compile dependency below) ships Java 21 bytecode, so this plugin
+    // must also target Java 21.
+    jvmToolchain(21)
     explicitApi()
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 gradlePlugin {
@@ -47,16 +48,19 @@ tasks.named<Delete>("clean") {
 }
 
 dependencies {
-    implementation(libs.anvilGradle)
+    // The Metro + KSP Gradle plugins are applied by id at execution time; we never reference their
+    // classes. Keep them off the compile classpath (their newer Kotlin metadata is unreadable by
+    // kotlin-dsl's embedded compiler) but on the runtime classpath so `pluginManager.apply(id)`
+    // can resolve them in consuming projects.
+    runtimeOnly(libs.metroGradle)
+    runtimeOnly(libs.kspGradle)
     compileOnly(libs.androidGradle)
-    compileOnly(libs.kotlinGradle)
 }
 
 val generateBuildConfig by tasks.registering(GenerateBuildConfigTask::class) {
     val props = mapOf(
         "GROUP" to project.property("GROUP").toString(),
         "VERSION" to project.property("VERSION_NAME").toString(),
-        "DAGGER_VERSION" to libs.versions.dagger.get()
     )
     properties.set(props)
     generatedSourceDir.set(layout.buildDirectory.dir("generated/wgp/kotlin/main"))
@@ -91,11 +95,5 @@ abstract class GenerateBuildConfigTask : DefaultTask() {
             }
             writeText(content)
         }
-    }
-}
-
-afterEvaluate {
-    with(tasks) {
-        findByName("kaptGenerateStubsKotlin")?.dependsOn(findByName("generateBuildConfig"))
     }
 }

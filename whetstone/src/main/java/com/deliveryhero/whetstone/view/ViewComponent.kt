@@ -1,31 +1,29 @@
 package com.deliveryhero.whetstone.view
 
 import android.view.View
-import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.activity.ActivityScope
 import com.deliveryhero.whetstone.injector.MembersInjectorMap
-import com.squareup.anvil.annotations.ContributesSubcomponent
-import com.squareup.anvil.annotations.ContributesTo
-import dagger.BindsInstance
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.GraphExtension
+import dev.zacsweers.metro.Multibinds
+import dev.zacsweers.metro.Provides
 
 /**
- * A Dagger component that has the lifetime of the [android.view.View].
+ * A Metro graph extension that has the lifetime of the [android.view.View].
  */
-@ContributesSubcomponent(scope = ViewScope::class, parentScope = ActivityScope::class)
-@SingleIn(ViewScope::class)
+@GraphExtension(ViewScope::class)
 public interface ViewComponent {
+
+    @Multibinds(allowEmpty = true)
     public val membersInjectorMap: MembersInjectorMap
 
     /**
-     * Interface for creating an [ViewComponent].
+     * Interface for creating a [ViewComponent]. Contributed to [ActivityScope] so the activity
+     * graph exposes it.
      */
-    @ContributesSubcomponent.Factory
-    public interface Factory {
-        public fun create(@BindsInstance view: View): ViewComponent
-    }
-
+    @GraphExtension.Factory
     @ContributesTo(ActivityScope::class)
-    public interface ParentComponent {
-        public fun getViewComponentFactory(): Factory
+    public interface Factory {
+        public fun create(@Provides view: View): ViewComponent
     }
 }

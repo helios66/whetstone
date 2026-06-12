@@ -20,7 +20,7 @@ import com.deliveryhero.whetstone.event.InjectedComponent
 import com.deliveryhero.whetstone.service.ContributesServiceInjector
 import com.deliveryhero.whetstone.service.ServiceComponent
 import com.deliveryhero.whetstone.view.ViewComponent
-import dagger.MembersInjector
+import dev.zacsweers.metro.MembersInjector
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -64,8 +64,7 @@ public object Whetstone {
         }
         @Suppress("UNCHECKED_CAST")
         return activityComponents.getOrPut(activity) {
-            fromApplication<ActivityComponent.ParentComponent>(app)
-                .getActivityComponentFactory()
+            fromApplication<ActivityComponent.Factory>(app)
                 .create(activity)
         } as T
     }
@@ -82,9 +81,10 @@ public object Whetstone {
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectStart(InjectedComponent.Application(application))
         val injector = fromApplication<ApplicationComponent>(application)
-            .membersInjectorMap[application.javaClass] as? MembersInjector<Application>
+            .membersInjectorMap[application::class] as? MembersInjector<Application>
 
-        requireNotNull(injector).injectMembers(application)
+        // Null when the class has no @Inject members (Whetstone generates no injector for it); a no-op.
+        injector?.injectMembers(application)
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectFinish(InjectedComponent.Application(application))
     }
@@ -119,7 +119,7 @@ public object Whetstone {
         }
 
         val injector = fromActivity<ActivityComponent>(activity)
-            .membersInjectorMap[activity.javaClass] as? MembersInjector<Activity>
+            .membersInjectorMap[activity::class] as? MembersInjector<Activity>
 
         injector?.injectMembers(activity)
 
@@ -153,12 +153,11 @@ public object Whetstone {
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectStart(InjectedComponent.Service(service))
         val app = service.application
-        val injector = fromApplication<ServiceComponent.ParentComponent>(app)
-            .getServiceComponentFactory()
+        val injector = fromApplication<ServiceComponent.Factory>(app)
             .create(service)
-            .membersInjectorMap[service.javaClass] as? MembersInjector<Service>
+            .membersInjectorMap[service::class] as? MembersInjector<Service>
 
-        requireNotNull(injector).injectMembers(service)
+        injector?.injectMembers(service)
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectFinish(InjectedComponent.Service(service))
     }
@@ -167,12 +166,11 @@ public object Whetstone {
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectStart(InjectedComponent.View(view))
         val activity = view.findActivity()
-        val injector = fromActivity<ViewComponent.ParentComponent>(activity)
-            .getViewComponentFactory()
+        val injector = fromActivity<ViewComponent.Factory>(activity)
             .create(view)
-            .membersInjectorMap[view.javaClass] as? MembersInjector<View>
+            .membersInjectorMap[view::class] as? MembersInjector<View>
 
-        requireNotNull(injector).injectMembers(view)
+        injector?.injectMembers(view)
         GlobalAndroidComponentListener.componentInjectionListener
             ?.onInjectFinish(InjectedComponent.View(view))
     }

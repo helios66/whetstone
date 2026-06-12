@@ -2,26 +2,25 @@ package com.deliveryhero.whetstone.app
 
 import android.app.Application
 import androidx.lifecycle.ViewModelProvider
-import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.injector.MembersInjectorMap
-import com.squareup.anvil.annotations.ContributesTo
-import dagger.BindsInstance
-import javax.inject.Singleton
+import dev.zacsweers.metro.Multibinds
 
 /**
- * A Dagger component that has the lifetime of the [android.app.Application].
+ * The root Metro dependency graph that has the lifetime of the [android.app.Application].
+ *
+ * The generated `GeneratedApplicationComponent` (or a hand-written `@DependencyGraph`) implements
+ * this interface, so everything contributed to [ApplicationScope] is aggregated here.
  */
-@ContributesTo(ApplicationScope::class)
-@SingleIn(ApplicationScope::class)
-@Singleton
 public interface ApplicationComponent {
     public val viewModelFactory: ViewModelProvider.Factory
+
+    @Multibinds(allowEmpty = true)
     public val membersInjectorMap: MembersInjectorMap
 
     /**
      * Interface for creating an [ApplicationComponent].
      */
     public interface Factory {
-        public fun create(@BindsInstance application: Application): ApplicationComponent
+        public fun create(application: Application): ApplicationComponent
     }
 }

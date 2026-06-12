@@ -2,31 +2,29 @@ package com.deliveryhero.whetstone.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.app.ApplicationScope
-import com.squareup.anvil.annotations.ContributesSubcomponent
-import com.squareup.anvil.annotations.ContributesTo
-import dagger.BindsInstance
-import javax.inject.Provider
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.GraphExtension
+import dev.zacsweers.metro.Multibinds
+import dev.zacsweers.metro.Provides
+import kotlin.reflect.KClass
 
 /**
- * A Dagger component that has the lifetime of the [androidx.lifecycle.ViewModel].
+ * A Metro graph extension that has the lifetime of the [androidx.lifecycle.ViewModel].
  */
-@ContributesSubcomponent(scope = ViewModelScope::class, parentScope = ApplicationScope::class)
-@SingleIn(ViewModelScope::class)
+@GraphExtension(ViewModelScope::class)
 public interface ViewModelComponent {
-    public val viewModelMap: Map<Class<*>, Provider<ViewModel>>
+
+    @Multibinds(allowEmpty = true)
+    public val viewModelMap: Map<KClass<*>, () -> ViewModel>
 
     /**
-     * Interface for creating an [ViewModelComponent].
+     * Interface for creating a [ViewModelComponent]. Contributed to [ApplicationScope] so the
+     * application graph exposes it.
      */
-    @ContributesSubcomponent.Factory
-    public interface Factory {
-        public fun create(@BindsInstance savedStateHandle: SavedStateHandle): ViewModelComponent
-    }
-
+    @GraphExtension.Factory
     @ContributesTo(ApplicationScope::class)
-    public interface ParentComponent {
-        public fun getViewModelComponentFactory(): Factory
+    public interface Factory {
+        public fun create(@Provides savedStateHandle: SavedStateHandle): ViewModelComponent
     }
 }

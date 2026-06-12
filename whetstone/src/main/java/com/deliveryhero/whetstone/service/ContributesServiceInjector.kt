@@ -13,15 +13,14 @@ import com.deliveryhero.whetstone.meta.AutoInjectorBinding
  * @ContributesServiceInjector
  * class MyService : Service()
  * ```
- * a complementary module will be generated
+ * a complementary Metro contribution will be generated
  * ```
- * @Module
  * @ContributesTo(ServiceScope::class)
- * interface MyServiceModule {
+ * interface MyService_WhetstoneModule {
  *     @Binds
  *     @IntoMap
- *     @LazyClassKey(MyService::class)
- *     fun binds(target: MembersInjector<MyService>): MembersInjector<*>
+ *     @ClassKey(MyService::class)
+ *     val MembersInjector<MyService>.bindMyServiceInjector: MembersInjector<*>
  * }
  * ```
  */

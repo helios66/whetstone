@@ -33,7 +33,6 @@ class BuildPlugin : Plugin<Project> {
 
     private fun Project.configureKotlin() = configure<KotlinProjectExtension> {
         val config: KotlinJvmCompilerOptions.() -> Unit = {
-            optIn.add("com.squareup.anvil.annotations.ExperimentalAnvilApi")
             freeCompilerArgs.addAll("-Xjvm-default=all", "-Xassertions=jvm")
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -47,8 +46,8 @@ class BuildPlugin : Plugin<Project> {
 
     private fun Project.configureAndroid() = plugins.withId("com.android.base") {
         extensions.configure(CommonExtension::class) {
-            compileSdk = 35
-            defaultConfig.minSdk = 21
+            compileSdk = 36
+            defaultConfig.minSdk = 23
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_11
                 targetCompatibility = JavaVersion.VERSION_11

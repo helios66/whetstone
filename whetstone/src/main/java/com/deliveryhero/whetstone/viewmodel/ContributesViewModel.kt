@@ -14,15 +14,14 @@ import com.deliveryhero.whetstone.meta.AutoInstanceBinding
  * @ContributesViewModel
  * class MyViewModel @Inject constructor() : ViewModel()
  * ```
- * a complementary module will be generated
+ * a complementary Metro contribution will be generated
  * ```
- * @Module
  * @ContributesTo(ViewModelScope::class)
- * interface MyViewModelModule {
+ * interface MyViewModel_WhetstoneModule {
  *     @Binds
  *     @IntoMap
- *     @LazyClassKey(MyViewModel::class)
- *     fun binds(target: MyViewModel): ViewModel
+ *     @ClassKey(MyViewModel::class)
+ *     val MyViewModel.bindMyViewModel: ViewModel
  * }
  * ```
  */

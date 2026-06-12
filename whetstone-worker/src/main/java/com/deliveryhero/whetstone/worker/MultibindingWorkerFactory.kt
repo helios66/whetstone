@@ -5,14 +5,15 @@ import androidx.annotation.RestrictTo
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
+import com.deliveryhero.whetstone.SingleIn
 import com.deliveryhero.whetstone.app.ApplicationScope
-import com.squareup.anvil.annotations.ContributesBinding
-import dagger.Reusable
-import javax.inject.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
-@Reusable
 @ContributesBinding(ApplicationScope::class)
-public class MultibindingWorkerFactory @Inject constructor(
+@SingleIn(ApplicationScope::class)
+@Inject
+public class MultibindingWorkerFactory(
     private val workerComponentFactory: WorkerComponent.Factory
 ) : WorkerFactory() {
 
@@ -24,7 +25,7 @@ public class MultibindingWorkerFactory @Inject constructor(
         val workerComponent = workerComponentFactory.create(appContext, workerParameters)
         val workerClass = loadClass(appContext.classLoader, workerClassName) ?: return null
 
-        return workerComponent.workerMap[workerClass]?.get()
+        return workerComponent.workerMap[workerClass.kotlin]?.invoke()
     }
 
     internal companion object {
