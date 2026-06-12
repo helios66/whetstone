@@ -126,8 +126,12 @@ class WhetstoneSymbolProcessorTest {
                 """
                 package example
                 import test.ContributesAInjector
+                import dev.zacsweers.metro.Inject
+                class Dep
                 @ContributesAInjector
-                class FooScreen
+                class FooScreen {
+                    @Inject lateinit var dep: Dep
+                }
                 """.trimIndent(),
             ),
         )
@@ -147,8 +151,12 @@ class WhetstoneSymbolProcessorTest {
                 package example
                 import com.deliveryhero.whetstone.injector.ContributesInjector
                 import test.AScope
+                import dev.zacsweers.metro.Inject
+                class Dep
                 @ContributesInjector(AScope::class)
-                class Custom
+                class Custom {
+                    @Inject lateinit var dep: Dep
+                }
                 """.trimIndent(),
             ),
         )
@@ -168,9 +176,13 @@ class WhetstoneSymbolProcessorTest {
                 import com.deliveryhero.whetstone.injector.ContributesInjector
                 import test.AScope
                 import test.ContributesBInjector
+                import dev.zacsweers.metro.Inject
+                class Dep
                 @ContributesInjector(AScope::class)
                 @ContributesBInjector
-                class MultiTrigger
+                class MultiTrigger {
+                    @Inject lateinit var dep: Dep
+                }
                 """.trimIndent(),
             ),
         )
@@ -186,7 +198,7 @@ class WhetstoneSymbolProcessorTest {
     }
 
     @Test
-    fun `ContributesAppInjector with generateAppComponent emits a Metro DependencyGraph`() {
+    fun `ContributesAppInjector with generateAppComponent emits graph plus injector module when it has Inject members`() {
         val generated = compile(
             SourceFile.kotlin(
                 "MyApp.kt",
@@ -194,12 +206,16 @@ class WhetstoneSymbolProcessorTest {
                 package example
                 import com.deliveryhero.whetstone.app.ContributesAppInjector
                 import android.app.Application
+                import dev.zacsweers.metro.Inject
+                class Dep
                 @ContributesAppInjector(generateAppComponent = true)
-                class MyApp : Application()
+                class MyApp : Application() {
+                    @Inject lateinit var dep: Dep
+                }
                 """.trimIndent(),
             ),
         )
-        // Member-injector module for the app itself…
+        // Member-injector module for the app (it has an @Inject member)…
         assertTrue(generated.containsKey("MyApp_WhetstoneModule.kt"), generated.keys.toString())
         // …plus the generated root graph.
         val graph = generated.getValue("GeneratedApplicationComponent.kt")
@@ -207,6 +223,34 @@ class WhetstoneSymbolProcessorTest {
         assertTrue(": ApplicationComponent" in graph, graph)
         assertTrue("public fun interface Factory" in graph, graph)
         assertTrue("application: Application" in graph, graph)
+    }
+
+    /**
+     * Regression: an injector-style class with NO `@Inject` members must NOT get a `MembersInjector`
+     * binding (Metro can't provide one), but `@ContributesAppInjector(generateAppComponent=true)`
+     * must still emit the graph.
+     */
+    @Test
+    fun `injector class without Inject members emits no member-injector binding`() {
+        val generated = compile(
+            SourceFile.kotlin(
+                "BareApp.kt",
+                """
+                package example
+                import com.deliveryhero.whetstone.app.ContributesAppInjector
+                import android.app.Application
+                @ContributesAppInjector(generateAppComponent = true)
+                class BareApp : Application()
+                """.trimIndent(),
+            ),
+        )
+        // No injector module — there is nothing to inject.
+        assertTrue(
+            generated.none { it.key.startsWith("BareApp_WhetstoneModule") },
+            "no injector module expected; got ${generated.keys}",
+        )
+        // But the root graph is still generated.
+        assertTrue(generated.containsKey("GeneratedApplicationComponent.kt"), generated.keys.toString())
     }
 
     @Test
