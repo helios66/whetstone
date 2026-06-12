@@ -10,11 +10,21 @@ This is a **major** release (2.0.0) — the DI engine changed and some internal/
 types were removed (e.g. each component's `ParentComponent`, the `*Module` interfaces). The
 consumer-facing annotation and `Whetstone.*` runtime APIs are source-compatible.
 
+**Minimum SDK raised: `minSdk` 21 → 23.** The modernized androidx dependencies dropped support
+for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
+
 ### Added
 - Fast, isolated KSP processor unit tests (kctfork + KSP2) covering every generated contribution
   shape, the generated `@DependencyGraph`, and a regression test for the single-file-per-class
   aggregation.
 - Robolectric runtime DI assertions in the sample (CI-runnable, no emulator).
+
+### Dependencies
+- AGP 8.13.0 → 8.13.2; `compileSdk` 35 → 36; `minSdk` 21 → 23.
+- androidx pulled to the latest versions compatible with AGP 8.13.x (the next releases require
+  AGP 9.1+): core 1.18.0, activity 1.13.0, lifecycle 2.10.0, work 2.11.2, compose 1.11.2,
+  fragment 1.8.9, appcompat 1.7.1, constraintlayout 2.2.1, material 1.14.0, and the latest
+  androidx.test. Metro 1.2.0 → 1.2.1. Kotlin stays 2.3.20; AGP stays on the 8.x line.
 
 ### Changed
 - **Migrated the DI engine from Square Anvil + Google Dagger to [Metro](https://github.com/zacsweers/metro) 1.2.0.**
