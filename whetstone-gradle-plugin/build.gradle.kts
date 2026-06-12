@@ -55,6 +55,9 @@ dependencies {
     runtimeOnly(libs.metroGradle)
     runtimeOnly(libs.kspGradle)
     compileOnly(libs.androidGradle)
+
+    testImplementation(kotlin("test-junit"))
+    testImplementation(libs.junit)
 }
 
 val generateBuildConfig by tasks.registering(GenerateBuildConfigTask::class) {

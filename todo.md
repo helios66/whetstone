@@ -4,17 +4,13 @@ Living task list for the Anvil+Dagger → Metro migration. See `changelog.md` fo
 history and `PLAN_METRO_MIGRATION.md` for the full design.
 
 ## In progress
-- [ ] Whetstone dependency-graph (Mermaid) feature — started 2026-06-13 (see docs/dep-graph-spec.md)
-  - [ ] Phase 1: processor emits per-module JSON graph fragment (KSP-time)
-  - [ ] Phase 1: `whetstoneDepGraph` Gradle task renders current module's Mermaid
-  - [ ] Phase 1: verify on :sample and :sample-library (valid mermaid, correct scopes)
-  - [ ] Phase 2: cross-module aggregation → whole-app graph at :sample
-  - [ ] Phase 2: renderer unit test over fixtures
+_(none)_
 
 ## Open
 _(none)_
 
 ## Done
+- [x] Whetstone dependency-graph (Mermaid) feature — Phase 1 (per-module) + Phase 2 (whole-app aggregation) + renderer unit tests; verified on :sample (7 scopes/8 contributions) and :sample-library — done 2026-06-13 (see docs/dep-graph-spec.md)
 - [x] Stage 9: emulator parity run on Pixel 6a — Application/ViewModel(Compose + delegate)/View/Service/Worker injection all verified working; nested App→Activity→View graph extensions resolve; no crashes — done 2026-06-12
 - [x] Stage 10: configuration-cache-test updated — drops removed-proguard test; adds 2 codegen tests asserting the graph + injector + instance contribution shapes; worker LoadClassTest retained; all pass — done 2026-06-12
 - [x] Stage 11: README updated to Metro; binary-compat baseline regenerated (metro.hints excluded); dropped unused anvil/dagger/kapt/autoService catalog entries; full `./gradlew build` green — done 2026-06-12

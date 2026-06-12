@@ -45,17 +45,38 @@ public class WhetstonePlugin : Plugin<Project> {
      * contributions from the JSON fragments the processor emits under the KSP generated-resources dir.
      */
     private fun Project.registerDepGraphTask() {
-        val fragments = fileTree(layout.buildDirectory.dir("generated/ksp").get().asFile)
-        fragments.include("**/resources/whetstone/graph/*.json")
+        val fragments = files()
+        val kspDependencies = mutableListOf<Any>()
+
+        // Collect a project's KSP graph fragment(s) + the ksp tasks that produce them.
+        fun collectFrom(source: Project) {
+            val tree = source.fileTree(source.layout.buildDirectory.dir("generated/ksp").get().asFile)
+            tree.include("**/resources/whetstone/graph/*.json")
+            fragments.from(tree)
+            kspDependencies.add(
+                source.tasks.matching { it.name.startsWith("ksp") && it.name.endsWith("Kotlin") }
+            )
+        }
+
+        collectFrom(this)
+        // Also fold in project-dependency modules so an app module renders the WHOLE-app graph
+        // (e.g. :sample picks up :sample-library's ViewModel contributions).
+        listOf("implementation", "api").forEach { configurationName ->
+            configurations.findByName(configurationName)?.dependencies
+                ?.withType(org.gradle.api.artifacts.ProjectDependency::class.java)
+                ?.forEach { dependency ->
+                    @Suppress("DEPRECATION")
+                    collectFrom(dependency.dependencyProject)
+                }
+        }
+
         val reports = layout.buildDirectory.dir("reports/whetstone")
-        // Fragments are produced by KSP — make sure it runs first.
-        val kspTasks = tasks.matching { it.name.startsWith("ksp") && it.name.endsWith("Kotlin") }
         tasks.register<WhetstoneDepGraphTask>("whetstoneDepGraph") {
             group = "whetstone"
             description = "Render a Mermaid diagram of the Whetstone DI graph for this module."
             graphFragments.from(fragments)
             reportDir.set(reports)
-            dependsOn(kspTasks)
+            dependsOn(kspDependencies)
         }
     }
 
