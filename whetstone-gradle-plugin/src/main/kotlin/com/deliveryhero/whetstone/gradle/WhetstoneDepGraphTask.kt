@@ -43,8 +43,10 @@ public abstract class WhetstoneDepGraphTask : DefaultTask() {
                 "_Generated from ${records.size} contribution(s). Do not edit._\n\n" +
                 "```mermaid\n$mermaid```\n"
         )
+        // Self-contained HTML that renders the graph to SVG (Mermaid CDN) — open or serve to view.
+        File(dir, "dep-graph.html").writeText(DepGraphRenderer.renderHtml(mermaid))
         logger.lifecycle(
-            "Whetstone dep-graph: ${records.size} contribution(s) -> ${File(dir, "dep-graph.md")}"
+            "Whetstone dep-graph: ${records.size} contribution(s) -> ${File(dir, "dep-graph.html")}"
         )
     }
 }

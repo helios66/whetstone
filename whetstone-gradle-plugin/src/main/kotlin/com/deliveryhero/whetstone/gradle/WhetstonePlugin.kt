@@ -65,8 +65,9 @@ public class WhetstonePlugin : Plugin<Project> {
             configurations.findByName(configurationName)?.dependencies
                 ?.withType(org.gradle.api.artifacts.ProjectDependency::class.java)
                 ?.forEach { dependency ->
-                    @Suppress("DEPRECATION")
-                    collectFrom(dependency.dependencyProject)
+                    // ProjectDependency.path (Gradle 8.11+) replaces the deprecated dependencyProject;
+                    // resolve it via the non-deprecated Project.project(path).
+                    collectFrom(project(dependency.path))
                 }
         }
 
