@@ -16,6 +16,8 @@ kctfork = "0.13.0"
 mavenPublish = "0.34.0"
 detekt = "1.23.8"
 junit = "4.13.2"
+robolectric = "4.16.1"
+androidxTestCore = "1.6.1"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 material = "1.12.0"
@@ -55,6 +57,8 @@ espresso-core = { group = "androidx.test.espresso", name = "espresso-core", vers
 javaxInject = { module = "javax.inject:javax.inject", version = "1" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidxTestCore = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }
 kotlinGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 metroRuntime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 metroGradle = { module = "dev.zacsweers.metro:gradle-plugin", version.ref = "metro" }
