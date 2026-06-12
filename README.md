@@ -1,5 +1,4 @@
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.helios66/whetstone?label=stable)](https://central.sonatype.com/artifact/io.github.helios66/whetstone)
-[![Snapshot](https://img.shields.io/maven-metadata/v?metadataUrl=https://central.sonatype.com/repository/maven-snapshots/io/github/helios66/whetstone/maven-metadata.xml&label=snapshot)](https://central.sonatype.com/repository/maven-snapshots/io/github/helios66/whetstone/)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-io.github.helios66%2Fwhetstone-2088FF?logo=github)](https://github.com/helios66/whetstone-private/packages)
 
 # Whetstone
 
@@ -31,7 +30,42 @@ The goals of Whetstone are:
 
 ## Getting Started
 
-First you must apply whetstone plugin in the `build.gradle` file of any module that requires dependency injection:
+Whetstone is published to **GitHub Packages** under `io.github.helios66`. First add the repository
+(with credentials — a GitHub token with `read:packages`) to your `settings.gradle.kts` so both the
+plugin and the runtime artifacts resolve:
+
+```kotlin
+// settings.gradle.kts
+val ghUser = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+val ghKey = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
+            credentials { username = ghUser; password = ghKey }
+        }
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
+            credentials { username = ghUser; password = ghKey }
+        }
+    }
+}
+```
+
+Then apply the whetstone plugin in the `build.gradle` file of any module that requires dependency injection:
 
 ```kotlin
 plugins {
@@ -46,6 +80,13 @@ Or you can use the old way to apply a plugin:
 buildscript {
   repositories {
     mavenCentral()
+    maven {
+      url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
+      credentials {
+        username = providers.gradleProperty("gpr.user").orNull
+        password = providers.gradleProperty("gpr.key").orNull
+      }
+    }
   }
   dependencies {
     classpath("io.github.helios66:whetstone-gradle-plugin:${latest_version}")
@@ -60,25 +101,10 @@ This automatically configures Metro and KSP, and also adds the necessary whetsto
 
 ### Using Snapshot Builds
 
-Snapshot builds are published automatically from the `main` branch and contain the latest unreleased changes. These builds are useful for testing new features or bug fixes before they are officially released.
+Snapshot builds (`-SNAPSHOT`) are published to the same GitHub Packages registry and contain the latest unreleased changes from the `main` branch. These builds are useful for testing new features or bug fixes before they are officially released.
 
-To use snapshot builds, add the Sonatype snapshots repository to your project:
-
-```kotlin
-// In root build.gradle.kts or settings.gradle.kts
-repositories {
-    mavenCentral()
-    maven {
-        name = "Central Portal Snapshots"
-        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
-        mavenContent {
-            snapshotsOnly()
-        }
-    }
-}
-```
-
-Then use the snapshot version in your plugin dependency:
+The GitHub Packages repository configured above (in `settings.gradle.kts`) already serves both
+release and snapshot versions — no extra repository is needed. Just use the snapshot version in your plugin dependency:
 
 ```kotlin
 plugins {
