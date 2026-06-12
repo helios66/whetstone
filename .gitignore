@@ -99,3 +99,4 @@ lint/tmp/
 
 # local migration planning notes (not tracked)
 PLAN_METRO_MIGRATION.md
+trace_processor

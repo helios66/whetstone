@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidLib)
     alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.kotlinCompose)
     id("com.deliveryhero.whetstone.build")
     id("com.deliveryhero.whetstone")
 }
@@ -11,6 +12,10 @@ android {
 
     defaultConfig {
         minSdk = 23
+    }
+
+    buildFeatures {
+        compose = true
     }
 
     compileOptions {
@@ -24,6 +29,10 @@ dependencies {
     implementation(libs.androidxCore)
     implementation(libs.androidxAppCompat)
     implementation(libs.material)
+    implementation(libs.androidxComposeRuntime)
+    implementation(libs.androidxComposeUi)
+    implementation(libs.androidxComposeMaterial)
+    implementation(libs.androidxLifecycleViewModelCompose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
