@@ -6,6 +6,16 @@ All notable changes documented here. Format follows
 
 ## [Unreleased]
 
+This is a **major** release (2.0.0) — the DI engine changed and some internal/previously-public
+types were removed (e.g. each component's `ParentComponent`, the `*Module` interfaces). The
+consumer-facing annotation and `Whetstone.*` runtime APIs are source-compatible.
+
+### Added
+- Fast, isolated KSP processor unit tests (kctfork + KSP2) covering every generated contribution
+  shape, the generated `@DependencyGraph`, and a regression test for the single-file-per-class
+  aggregation.
+- Robolectric runtime DI assertions in the sample (CI-runnable, no emulator).
+
 ### Changed
 - **Migrated the DI engine from Square Anvil + Google Dagger to [Metro](https://github.com/zacsweers/metro) 1.2.0.**
   The public annotation API (`@ContributesViewModel`, `@ContributesFragment`,
