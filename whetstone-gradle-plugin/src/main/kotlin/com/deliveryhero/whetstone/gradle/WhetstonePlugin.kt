@@ -7,6 +7,7 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.hasPlugin
+import org.gradle.kotlin.dsl.register
 
 /**
  * Applies Metro (the dependency-injection compiler plugin) and KSP (which runs Whetstone's
@@ -35,6 +36,26 @@ public class WhetstonePlugin : Plugin<Project> {
                 )
             }
             target.addAddOnDependencies(extension)
+            target.registerDepGraphTask()
+        }
+    }
+
+    /**
+     * Registers `whetstoneDepGraph`, which renders a Mermaid diagram of this module's Whetstone DI
+     * contributions from the JSON fragments the processor emits under the KSP generated-resources dir.
+     */
+    private fun Project.registerDepGraphTask() {
+        val fragments = fileTree(layout.buildDirectory.dir("generated/ksp").get().asFile)
+        fragments.include("**/resources/whetstone/graph/*.json")
+        val reports = layout.buildDirectory.dir("reports/whetstone")
+        // Fragments are produced by KSP — make sure it runs first.
+        val kspTasks = tasks.matching { it.name.startsWith("ksp") && it.name.endsWith("Kotlin") }
+        tasks.register<WhetstoneDepGraphTask>("whetstoneDepGraph") {
+            group = "whetstone"
+            description = "Render a Mermaid diagram of the Whetstone DI graph for this module."
+            graphFragments.from(fragments)
+            reportDir.set(reports)
+            dependsOn(kspTasks)
         }
     }
 
