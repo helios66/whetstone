@@ -37,8 +37,22 @@ java {
 gradlePlugin {
     plugins {
         create("whetstone") {
-            id = "com.deliveryhero.whetstone"
+            id = "io.github.helios66.whetstone"
             implementationClass = "com.deliveryhero.whetstone.gradle.WhetstonePlugin"
+        }
+    }
+}
+
+// Local-only: publish the Gradle plugin (and its marker) to a private GitHub Packages registry.
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/helios66/whetstone")
+            credentials {
+                username = (findProperty("gpr.user") as String?) ?: System.getenv("GITHUB_ACTOR")
+                password = (findProperty("gpr.key") as String?) ?: System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
