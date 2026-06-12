@@ -4,7 +4,12 @@ Living task list for the Anvil+Dagger → Metro migration. See `changelog.md` fo
 history and `PLAN_METRO_MIGRATION.md` for the full design.
 
 ## In progress
-_(none — migration complete)_
+- [ ] Whetstone dependency-graph (Mermaid) feature — started 2026-06-13 (see docs/dep-graph-spec.md)
+  - [ ] Phase 1: processor emits per-module JSON graph fragment (KSP-time)
+  - [ ] Phase 1: `whetstoneDepGraph` Gradle task renders current module's Mermaid
+  - [ ] Phase 1: verify on :sample and :sample-library (valid mermaid, correct scopes)
+  - [ ] Phase 2: cross-module aggregation → whole-app graph at :sample
+  - [ ] Phase 2: renderer unit test over fixtures
 
 ## Open
 _(none)_
