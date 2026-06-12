@@ -19,7 +19,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         applicationId = "com.deliveryhero.whetstone.sample"
-        targetSdk = 35
+        targetSdk = 36
     }
 
     buildTypes {
