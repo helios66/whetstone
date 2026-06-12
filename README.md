@@ -330,6 +330,42 @@ fun MyScreen(viewModel: MyViewModel = injectedViewModel()) {
 }
 ```
 
+## Visualizing the dependency graph
+
+The Whetstone Gradle plugin contributes a `whetstoneDepGraph` task that renders a
+[Mermaid](https://mermaid.js.org/) diagram of your DI graph — every `@Contributes*`
+class grouped under its scope, with the Whetstone scope hierarchy drawn as edges.
+
+```bash
+./gradlew :app:whetstoneDepGraph
+```
+
+The data is produced by the KSP processor at build time (a per-module JSON fragment
+under `build/generated/ksp/<variant>/resources/whetstone/graph/`), so no reflection or
+runtime cost is involved. An app module also folds in the contributions of its
+project-dependency modules, so the report is the **whole-app** graph.
+
+Outputs land in `build/reports/whetstone/`:
+
+- `dep-graph.md` — Markdown with a ` ```mermaid ` block (renders inline on GitHub),
+- `dep-graph.mmd` — the raw Mermaid source (for `mmdc` / other tooling),
+- `dep-graph.html` — a self-contained page that renders the graph to SVG in the browser.
+
+```mermaid
+flowchart TD
+  subgraph ApplicationScope["ApplicationScope"]
+    App["MyApplication"]
+  end
+  subgraph ActivityScope["ActivityScope"]
+    Act["MyActivity"]
+  end
+  subgraph ViewModelScope["ViewModelScope"]
+    VM["MyViewModel<br/>(ViewModel)"]
+  end
+  ApplicationScope --> ActivityScope
+  ApplicationScope --> ViewModelScope
+```
+
 ## License
 ```
 Copyright 2021 Delivery Hero, GmbH.
