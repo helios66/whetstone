@@ -80,11 +80,22 @@ dependencies {
     implementation(libs.material)
     implementation(libs.constraintlayout)
     implementation(libs.mundusRuntime)
-    implementation(libs.mundusComposeTracing)
+    // NOTE: the Mundus plugin auto-adds mundus-compose-tracing when presets.compose is on, and
+    // 0.6.0 auto-installs the Compose CompositionTracer from the classpath (the old
+    // BuildConfig.DEBUG gate on install() is bypassed). To keep release traces lean we exclude
+    // the compose-tracing module from the release classpath (see configurations block below).
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidxTestCore)
     testImplementation(kotlin("test-junit"))
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+}
+
+// Mundus 0.6.0 auto-installs the Compose CompositionTracer whenever mundus-compose-tracing is on
+// the classpath (no install() call needed). Keep it out of release so release traces stay lean —
+// debug still gets the full composition trace.
+configurations.matching { it.name.startsWith("release") }.configureEach {
+    exclude(group = "com.unpopulardev.mundus", module = "mundus-compose-tracing")
+    exclude(group = "com.unpopulardev.mundus", module = "mundus-compose-tracing-android")
 }
