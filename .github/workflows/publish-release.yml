@@ -7,6 +7,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   publish-release:
     runs-on: ubuntu-latest
@@ -15,11 +19,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # delivery-hero-tech bot PAT — actions/checkout persists this as the
-          # git credential for the rest of the job, so the post-release SNAPSHOT
-          # bump step can push to the protected `main` branch (the bot is on
-          # the branch-protection bypass list; the default GITHUB_TOKEN is not).
-          token: ${{ secrets.GH_TOKEN }}
+          # RELEASE_TOKEN is a classic PAT owned by this fork. actions/checkout persists it as the
+          # git credential for the rest of the job so the post-release SNAPSHOT bump can push to the
+          # protected `main` branch (add the token's account to the branch-protection bypass list).
+          # Required scopes:
+          #   - repo            : push the version-bump commit to main
+          #   - write:packages  : publish to helios66/whetstone-private (read:packages is implied)
+          #   - read:packages   : resolve Mundus from helios66/mundus during the build
+          token: ${{ secrets.RELEASE_TOKEN }}
           fetch-depth: 0
 
       - name: Set JDK version
@@ -67,27 +74,26 @@ jobs:
           fi
 
       - name: Run tests
+        env:
+          # The sample resolves Mundus from the helios66/mundus GitHub Packages registry; the build
+          # credentials block reads these (gpr.user/gpr.key fall back to GITHUB_ACTOR/GITHUB_TOKEN).
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: ./gradlew build
 
-      - name: Publish artifact
+      - name: Publish to GitHub Packages
         env:
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_NEXUS_ACTOR_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_NEXUS_ACTOR_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
-            echo "Publishing version: ${{ steps.version.outputs.version }}"
-            echo "Github username: ${GITHUB_ACTOR}"
-            cat gradle.properties >> whetstone-gradle-plugin/gradle.properties
-            ./gradlew clean -x test -x lint publish :whetstone-gradle-plugin:publish -PmavenCentralAutomaticPublishing=true
-            echo "Submitted to Maven Central (sync may take up to 30 min)"
-            if [[ "${{ steps.version.outputs.is_release }}" == "true" ]]; then
-              echo "Verify release: https://repo1.maven.org/maven2/com/deliveryhero/whetstone/"
-              echo "Portal: https://central.sonatype.com/publishing/deployments"
-            else
-              echo "Verify snapshot metadata: https://central.sonatype.com/repository/maven-snapshots/com/deliveryhero/whetstone/whetstone/maven-metadata.xml"
-            fi
+            echo "Publishing version ${{ steps.version.outputs.version }} to GitHub Packages"
+            # Library modules (root subprojects) + the Gradle plugin (included build) -> the
+            # GitHubPackages maven repo wired in build.gradle.kts / whetstone-gradle-plugin.
+            ./gradlew clean -x test -x lint \
+              publishAllPublicationsToGitHubPackagesRepository \
+              :whetstone-gradle-plugin:publishAllPublicationsToGitHubPackagesRepository
+            echo "Published to https://maven.pkg.github.com/helios66/whetstone-private"
+            echo "Verify: https://github.com/helios66/whetstone-private/packages"
 
       - name: Bump to next SNAPSHOT version
         if: github.event_name == 'release' && steps.version.outputs.is_release == 'true'
@@ -107,11 +113,11 @@ jobs:
           sed -i.bak "s/^VERSION_NAME=.*/VERSION_NAME=$NEXT_VERSION/" gradle.properties
           rm gradle.properties.bak
 
-          # Author the commit as the delivery-hero-tech bot (whose PAT is the
-          # persisted git credential from actions/checkout, and which is on the
-          # `main` branch-protection bypass list).
-          git config user.name "Delivery-Hero-Tech"
-          git config user.email "pd-mobile-bot@deliveryhero.com"
+          # Author the commit as the GitHub Actions bot. The push uses the RELEASE_TOKEN credential
+          # persisted by actions/checkout; if `main` is branch-protected, add the token's account to
+          # the bypass list (the default GITHUB_TOKEN cannot push to a protected branch).
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # Checkout main branch (release events check out tags, leaving us in detached HEAD)
           git checkout main

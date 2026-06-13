@@ -1,18 +1,11 @@
 Releasing
 =========
 
-> **⚠️ Fork distribution drift.** This fork now publishes to **GitHub Packages** under
-> `io.github.helios66` (`https://maven.pkg.github.com/helios66/whetstone-private`) — see the README
-> and `changelog.md`. The library/plugin build is already wired for GitHub Packages
-> (`gpr.user`/`gpr.key`; Maven Central + signing disabled in `gradle.properties`).
->
-> The Maven Central / Sonatype + `deliveryhero` instructions below are **inherited from upstream and
-> not yet migrated** — the release CI (`.github/workflows/publish-release.yml`) still targets
-> Sonatype with the DeliveryHero bot identity. Migrating the workflow + this doc to GitHub Packages
-> is the remaining "Overhaul B" task (tracked in `todo.md`). Until then, treat the steps below as the
-> legacy process, not the fork's actual release path.
+This fork publishes to **GitHub Packages** under group `io.github.helios66`
+(`https://maven.pkg.github.com/helios66/whetstone-private`, plugin id
+`io.github.helios66.whetstone`). Maven Central + Sonatype signing are disabled.
 
-Whetstone uses an automated release process triggered by GitHub Releases. The workflow automatically handles testing, publishing, tagging, and preparing the next development version.
+Whetstone uses an automated release process triggered by GitHub Releases. The workflow automatically handles testing, publishing to GitHub Packages, tagging, and preparing the next development version.
 
 ## Quick Release Guide
 
@@ -35,7 +28,7 @@ Whetstone uses an automated release process triggered by GitHub Releases. The wo
    ```
 
 3. **Create a GitHub Release** (only after the prep PR is merged to `main`)
-   - Go to [GitHub Releases](https://github.com/deliveryhero/whetstone/releases/new)
+   - Go to [GitHub Releases](https://github.com/helios66/whetstone/releases/new)
    - Click "Choose a tag" and create a new tag `X.Y.Z` (e.g., `1.2.3`).
    - Write release notes describing changes
    - Click "Publish release"
@@ -44,11 +37,11 @@ Whetstone uses an automated release process triggered by GitHub Releases. The wo
    - GitHub Actions automatically:
      - Validates version format (must be X.Y.Z, no SNAPSHOT)
      - Runs full test suite
-     - Publishes to Maven Central (automatic promotion enabled)
+     - Publishes to GitHub Packages (`helios66/whetstone-private`)
      - Commits next SNAPSHOT version to main (X.Y.Z+1-SNAPSHOT)
 
 5. **Done!**
-   - Verify the release on [Maven Central](https://central.sonatype.com/artifact/com.deliveryhero.whetstone/whetstone)
+   - Verify the release in [GitHub Packages](https://github.com/helios66/whetstone-private/packages)
    - Check that main branch was automatically updated to next SNAPSHOT version
 
 ## What the Automation Does
@@ -57,23 +50,27 @@ When you create a GitHub release:
 
 1. **Version Validation**: Reads `VERSION_NAME` from gradle.properties and validates format (X.Y.Z, no SNAPSHOT)
 2. **Testing**: Runs `./gradlew build` to ensure all tests pass
-3. **Publishing**: Publishes artifacts to Maven Central with automatic promotion
+3. **Publishing**: Publishes artifacts to GitHub Packages (`helios66/whetstone-private`)
 4. **Next Version**: Automatically commits `X.Y.(Z+1)-SNAPSHOT` to main branch
 
 ## Required repo configuration
 
-The post-release SNAPSHOT bump pushes a commit directly to the protected `main` branch.
-That push is performed by the `delivery-hero-tech` org bot and depends on:
+The workflow publishes to GitHub Packages and pushes the post-release SNAPSHOT bump
+directly to the protected `main` branch. Both use a single classic PAT secret,
+`RELEASE_TOKEN`, configured on `.github/workflows/publish-release.yml` via
+`actions/checkout`'s `token:` input (so the persisted git credential carries the
+identity for the bump push) and as `GITHUB_TOKEN` on the build/publish steps.
 
-- The `GH_TOKEN` repo secret (the bot's PAT) being available to
-  `.github/workflows/publish-release.yml` — wired via `actions/checkout`'s `token:`
-  input so the persisted git credentials carry the bot identity for the rest of the job.
-- `delivery-hero-tech` being included in the `main` branch-protection bypass list
-  ("Allow specified actors to bypass required pull requests"). Without this the push
-  is rejected with `GH006: Protected branch update failed`.
+`RELEASE_TOKEN` must be a classic PAT with:
 
-If a fork needs to run this workflow, configure a `GH_TOKEN` secret with an
-equivalent bot/PAT and add that identity to the fork's branch-protection bypass list.
+- **`repo`** — push the version-bump commit to `main`. If `main` is branch-protected,
+  add the token's account to the bypass list ("Allow specified actors to bypass
+  required pull requests"), or the push is rejected with `GH006: Protected branch update failed`.
+- **`write:packages`** — publish to `helios66/whetstone-private` (read is implied).
+- **`read:packages`** — resolve Mundus from `helios66/mundus` during the build.
+
+Locally (manual publish), the build reads the same credentials from `gpr.user`/`gpr.key`
+in `~/.gradle/gradle.properties`.
 
 ## Version Scheme
 
@@ -86,26 +83,25 @@ equivalent bot/PAT and add that identity to the fork's branch-protection bypass 
 If the automated workflow is broken and you must publish manually:
 
 ```bash
+# Credentials: gpr.user/gpr.key in ~/.gradle/gradle.properties (or export
+# GITHUB_ACTOR / GITHUB_TOKEN). The PAT needs write:packages on whetstone-private
+# (publish) + read:packages on mundus (the sample resolves Mundus during the build).
+
 # 1. From a release prep PR branch (gradle.properties already at X.Y.Z), run tests
 ./gradlew clean build
 
-# 2. Propagate parent properties into the includeBuild plugin module
-#    (mirrors what the workflow does — required because the gradle plugin
-#    is a composite build and reads its own gradle.properties).
-cat gradle.properties >> whetstone-gradle-plugin/gradle.properties
+# 2. Publish the library modules + the Gradle plugin to GitHub Packages
+#    (the includeBuild plugin reads GROUP/VERSION_NAME from the root gradle.properties
+#    via loadParentProperties(), so no property-propagation hack is needed).
+./gradlew clean -x test -x lint \
+  publishAllPublicationsToGitHubPackagesRepository \
+  :whetstone-gradle-plugin:publishAllPublicationsToGitHubPackagesRepository
 
-# 3. Publish
-./gradlew clean -x test -x lint publish :whetstone-gradle-plugin:publish \
-  -PmavenCentralAutomaticPublishing=true
-
-# 4. Restore the working tree (don't commit the cat-append)
-git checkout -- whetstone-gradle-plugin/gradle.properties
-
-# 5. Tag and push the tag
+# 3. Tag and push the tag
 git tag -a X.Y.Z -m "Version X.Y.Z"
 git push origin X.Y.Z
 
-# 6. Open a follow-up PR bumping gradle.properties to X.Y.(Z+1)-SNAPSHOT
+# 4. Open a follow-up PR bumping gradle.properties to X.Y.(Z+1)-SNAPSHOT
 #    (main is protected — you cannot push the bump directly).
 ```
 
@@ -123,11 +119,14 @@ Note: Using GitHub Releases is strongly recommended as it provides full automati
 - The workflow runs the full test suite before publishing.
 - Fix failing tests on `main`, then create a new GitHub Release.
 
-**Maven Central not showing new version**
-- Automatic publishing is enabled, but Maven Central can take a few minutes to sync.
-- Check the [Maven Central Publisher Portal](https://central.sonatype.com/publishing/deployments) for deployment status.
+**Published version not showing in GitHub Packages**
+- Check the [packages page](https://github.com/helios66/whetstone-private/packages) and the "Publish to GitHub Packages" step logs.
+- A 401/403 on publish means `RELEASE_TOKEN` lacks `write:packages` on `whetstone-private` (or expired).
+
+**Build fails resolving Mundus**
+- The sample depends on Mundus from `helios66/mundus`. `RELEASE_TOKEN` needs `read:packages`; a 401 on `com.unpopulardev.mundus:*` is the tell.
 
 **Next SNAPSHOT version not committed to `main`**
-- Most common cause: `GH_TOKEN` is missing or the bot is not on the branch-protection bypass list — see [Required repo configuration](#required-repo-configuration). The default `GITHUB_TOKEN` cannot push to a protected `main`, and the failure surfaces only at the bump step (after the artifact is already published to Maven Central).
+- Most common cause: `RELEASE_TOKEN` is missing/lacks `repo`, or its identity is not on the branch-protection bypass list — see [Required repo configuration](#required-repo-configuration). The default `GITHUB_TOKEN` cannot push to a protected `main`, and the failure surfaces only at the bump step (after the artifacts are already published).
 - Other causes: check the GitHub Actions logs for the "Bump to next SNAPSHOT version" step.
 - Workaround: open a PR manually bumping `gradle.properties` to `X.Y.(Z+1)-SNAPSHOT`.

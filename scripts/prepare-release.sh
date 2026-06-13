@@ -109,7 +109,7 @@ if [[ "$CURRENT_VERSION" == *SNAPSHOT* ]]; then
     echo "   git push origin main"
     echo ""
     echo -e "${YELLOW}3. Create GitHub Release${NC}"
-    echo "   Go to: https://github.com/deliveryhero/whetstone/releases/new"
+    echo "   Go to: https://github.com/helios66/whetstone/releases/new"
     echo "   - Tag: v$RELEASE_VERSION (create new tag)"
     echo "   - Title: v$RELEASE_VERSION"
     echo "   - Description: Write release notes"
@@ -118,7 +118,7 @@ if [[ "$CURRENT_VERSION" == *SNAPSHOT* ]]; then
     echo "The workflow will automatically:"
     echo "  ✓ Validate VERSION_NAME in gradle.properties"
     echo "  ✓ Run tests"
-    echo "  ✓ Publish to Maven Central"
+    echo "  ✓ Publish to GitHub Packages (helios66/whetstone-private)"
     echo "  ✓ Commit next SNAPSHOT version to main"
     echo ""
 else
@@ -132,7 +132,7 @@ else
     echo "   git push origin main"
     echo ""
     echo "2. Create GitHub Release:"
-    echo "   Go to: https://github.com/deliveryhero/whetstone/releases/new"
+    echo "   Go to: https://github.com/helios66/whetstone/releases/new"
     echo "   Write release notes and publish"
     echo ""
 fi
