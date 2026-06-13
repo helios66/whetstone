@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.deliveryhero.whetstone.viewmodel.ContributesViewModel
+import com.unpopulardev.mundus.runtime.Mundus
+import com.unpopulardev.mundus.runtime.TraceArg
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -148,15 +150,24 @@ public class TodoViewModel @Inject constructor(
 
     /** Aggregate a weighted score across all todos on a background dispatcher. */
     private suspend fun computeStatsScore(): Int = withContext(Dispatchers.Default) {
-        var acc = 0
-        for (todo in _todos.toList()) {
-            acc += scoreFor(todo)
+        // 0.6.0 manual API: a hand-rolled span carrying key/value metadata.
+        val token = Mundus.beginTokenWith("TodoViewModel.statsBatch") {
+            put("todoCount", _todos.size.toLong())
+            put("filter", filterCategoryId?.let { categoryName(it) } ?: "all")
         }
-        acc
+        try {
+            var acc = 0
+            for (todo in _todos.toList()) {
+                acc += scoreFor(todo)
+            }
+            acc
+        } finally {
+            Mundus.endToken(token)
+        }
     }
 
     /** Per-todo score; suspends to simulate IO so the slice spans a real await. */
-    private suspend fun scoreFor(todo: Todo): Int {
+    private suspend fun scoreFor(@TraceArg todo: Todo): Int {
         delay(3)
         val weight = when (todo.priority) {
             Priority.HIGH -> 5
