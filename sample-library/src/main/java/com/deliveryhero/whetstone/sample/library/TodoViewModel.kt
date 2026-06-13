@@ -187,7 +187,7 @@ public class TodoViewModel @Inject constructor(
             acc += conflictDemo.alsoSilent(ids)
             // Part B probe: inline / higher-order(lambda) / Flow / parallel-async / throwing fn.
             acc += probe.inlined { ids.size }
-            acc += probe.higherOrder { ids.size + 1 }
+            acc += probe.higherOrder { var x = 0; for (i in 0..ids.size) x += i; x }
             acc += probe.flowConsumer()
             acc += probe.parallel()
             try { acc += probe.throwingTraced() } catch (e: IllegalStateException) { acc += 1 }

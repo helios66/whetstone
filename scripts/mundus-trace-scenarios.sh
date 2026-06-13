@@ -27,7 +27,10 @@
 #     - multi-module reach       slices from both :sample (app) and :sample-library (library)
 #     - Part B (0.11.1)          inline fns NOT traced (Mundus warns instead — build check);
 #                                structured-concurrency child spans (parallel.async#N nested);
-#                                exception metadata (error_type + error_message args on .exception)
+#                                exception metadata (error_type + error_message args on .exception);
+#                                traceFlowOperators + traceLambdas OFF by default (no map#/block# spans)
+#   GRANULAR scenario (in `both`): rebuilds with -Pmundus.traceFlowOperators=true -Pmundus.traceLambdas
+#     =true and asserts the opt-in spans DO appear (flowConsumer.map#N, <fn>.block#N).
 #
 # Regression guards (also run in `both`):
 #   - metadata VALUE correctness (debug): debug.filter == 'all', debug.todoCount a sane int —
@@ -256,6 +259,12 @@ validate_partb() { # $1=trace $2=label
     "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.error_type' AND string_value GLOB '*IllegalStateException'")" 1
   assert_ge "[$l] exception metadata error_message == 'probe-boom'" \
     "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.error_message' AND string_value='probe-boom'")" 1
+  # traceFlowOperators + traceLambdas are opt-in (default OFF) — assert they produce NOTHING here
+  # (the enabled state is verified in the GRANULAR scenario with both flags on).
+  assert_eq "[$l] traceFlowOperators OFF by default (no flowConsumer.map# spans)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*flowConsumer.map#*'")" 0
+  assert_eq "[$l] traceLambdas OFF by default (no .block# spans)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*.block#*'")" 0
 }
 
 # Build-time check: Part B T1 (inline) ships as a WARNING, not a trace. Assert Mundus emits it.
@@ -333,6 +342,18 @@ if [ "$WHICH" = "both" ] || [ "$WHICH" = "disabled" ]; then
   else
     fail "[disabled] App DI log missing — app broke with Mundus disabled"
   fi
+fi
+
+if [ "$WHICH" = "both" ] || [ "$WHICH" = "granular" ]; then
+  echo "--- GRANULAR: traceFlowOperators + traceLambdas ENABLED (opt-in flags) ---"
+  # The opt-in counterpart to the OFF-by-default checks in validate_partb. With both flags on,
+  # Flow operators get nested spans (flowConsumer.map#N) and lambda bodies get nested spans
+  # (<fn>.block#N). Proves the flags actually do something (not no-ops).
+  T="$(run_variant granular 'sample/build/outputs/apk/debug/*.apk' -Pmundus.traceFlowOperators=true -Pmundus.traceLambdas=true)"
+  assert_ge "[granular] traceFlowOperators ON -> Flow operator spans (flowConsumer.map#)" \
+    "$(q "$T" "SELECT COUNT(*) FROM slice WHERE name GLOB '*flowConsumer.map#*'")" 1
+  assert_ge "[granular] traceLambdas ON -> lambda-body spans (.block#)" \
+    "$(q "$T" "SELECT COUNT(*) FROM slice WHERE name GLOB '*.block#*'")" 1
 fi
 
 echo "==="
