@@ -25,6 +25,9 @@
 #     - thread attribution       scoreFor runs on a DefaultDispatcher thread, NOT main
 #     - span balance             manual statsBatch spans all closed (dur>=0); <2% unclosed overall
 #     - multi-module reach       slices from both :sample (app) and :sample-library (library)
+#     - Part B (0.11.1)          inline fns NOT traced (Mundus warns instead — build check);
+#                                structured-concurrency child spans (parallel.async#N nested);
+#                                exception metadata (error_type + error_message args on .exception)
 #
 # Regression guards (also run in `both`):
 #   - metadata VALUE correctness (debug): debug.filter == 'all', debug.todoCount a sane int —
@@ -237,6 +240,34 @@ validate_disabled() { # $1=trace $2=label
   assert_ge "[$l] disabled: manual beginTokenWith span SURVIVES (statsBatch)" "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*statsBatch*'")" 1
 }
 
+# Part B coverage (shipped in 0.11.1) — driven by the TracingProbe fixture (outside includePackages,
+# @AutoTrace). Covers: inline fns are NOT traced (Mundus warns instead — see check_inline_warning);
+# structured-concurrency child spans (each async{} nested under its parent); and exception metadata
+# (a thrown error yields an .exception slice carrying the exception type + message as args).
+validate_partb() { # $1=trace $2=label
+  local t="$1" l="$2"
+  assert_eq "[$l] inline fn NOT traced (TracingProbe.inlined)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*TracingProbe.inlined*'")" 0
+  assert_ge "[$l] structured-concurrency child spans (parallel.async#N >= 2)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*TracingProbe.parallel.async*'")" 2
+  assert_ge "[$l] exception slice (throwingTraced.exception)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*throwingTraced.exception*'")" 1
+  assert_ge "[$l] exception metadata error_type == IllegalStateException" \
+    "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.error_type' AND string_value GLOB '*IllegalStateException'")" 1
+  assert_ge "[$l] exception metadata error_message == 'probe-boom'" \
+    "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.error_message' AND string_value='probe-boom'")" 1
+}
+
+# Build-time check: Part B T1 (inline) ships as a WARNING, not a trace. Assert Mundus emits it.
+check_inline_warning() {
+  local out; out="$(./gradlew :sample-library:clean :sample-library:compileDebugKotlin --console=plain 2>&1 || true)"
+  if echo "$out" | grep -qiE "inline fun .* cannot be instrumented"; then
+    pass "[build] Mundus warns on an untraced inline fn (T1 trace-or-warn acceptance)"
+  else
+    fail "[build] expected an inline-fn warning from Mundus, none found"
+  fi
+}
+
 echo "=== Mundus trace scenarios on $DEVICE (mundus $(grep -m1 '^mundus' gradle/libs.versions.toml | cut -d'"' -f2)) ==="
 adb get-state >/dev/null 2>&1 || { echo "ERROR: device $DEVICE not available"; exit 2; }
 
@@ -255,6 +286,8 @@ if [ "$WHICH" = "debug" ] || [ "$WHICH" = "both" ]; then
   validate_presets "$T" debug
   validate_structure "$T" debug
   validate_autotrace "$T" debug
+  validate_partb "$T" debug
+  check_inline_warning
 fi
 
 if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
@@ -267,6 +300,7 @@ if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
   validate_presets "$T" release
   validate_structure "$T" release
   validate_autotrace "$T" release
+  validate_partb "$T" release
   if grep -q "message!" "$OUT/scenario-release.logcat.txt" 2>/dev/null; then
     pass "[release] no DI crash (App log emitted under R8 full mode)"
   else

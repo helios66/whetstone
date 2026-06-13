@@ -8,6 +8,7 @@ import com.deliveryhero.whetstone.viewmodel.ContributesViewModel
 import com.example.mundusdemo.AutoTracedDemo
 import com.example.mundusdemo.ConflictDemo
 import com.example.mundusdemo.PartlyTracedDemo
+import com.example.mundusdemo.TracingProbe
 import com.unpopulardev.mundus.runtime.Mundus
 import com.unpopulardev.mundus.runtime.TraceArg
 import javax.inject.Inject
@@ -39,6 +40,7 @@ public class TodoViewModel @Inject constructor(
     private val autoTraced = AutoTracedDemo()
     private val partlyTraced = PartlyTracedDemo()
     private val conflictDemo = ConflictDemo()
+    private val probe = TracingProbe()
 
     private val _todos = mutableStateListOf<Todo>()
     public val todos: List<Todo> get() = _todos
@@ -183,6 +185,12 @@ public class TodoViewModel @Inject constructor(
             // Precedence: @NoTrace class with an @AutoTrace method — observed that @NoTrace wins.
             acc += conflictDemo.contested(ids)
             acc += conflictDemo.alsoSilent(ids)
+            // Part B probe: inline / higher-order(lambda) / Flow / parallel-async / throwing fn.
+            acc += probe.inlined { ids.size }
+            acc += probe.higherOrder { ids.size + 1 }
+            acc += probe.flowConsumer()
+            acc += probe.parallel()
+            try { acc += probe.throwingTraced() } catch (e: IllegalStateException) { acc += 1 }
             acc
         } finally {
             Mundus.endToken(token)
