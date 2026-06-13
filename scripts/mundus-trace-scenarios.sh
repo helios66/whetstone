@@ -19,6 +19,13 @@
 #     - everything else still survives R8 full mode       (DI + suspend + manual span + metadata)
 #     - no DI crash                                       ("App: ... message!" in logcat)
 #
+#   Both scenarios also run (so each is verified in debug AND under R8):
+#     - per-preset coverage      lifecycle (Activity.onCreate), startupPhases (Application.onCreate),
+#                                viewModel (TodoViewModel.*), workers (MainWorker.doWork)
+#     - thread attribution       scoreFor runs on a DefaultDispatcher thread, NOT main
+#     - span balance             manual statsBatch spans all closed (dur>=0); <2% unclosed overall
+#     - multi-module reach       slices from both :sample (app) and :sample-library (library)
+#
 # Regression guards (also run in `both`):
 #   - metadata VALUE correctness (debug): debug.filter == 'all', debug.todoCount a sane int —
 #     catches typed put() writing garbage or to the wrong Perfetto column.
@@ -124,6 +131,46 @@ validate_common() { # $1=trace  $2=label
   assert_ge "[$l] debug.filter string (typed put)"       "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.filter' AND string_value IS NOT NULL")" 1
 }
 
+# Per-preset coverage — each Mundus preset must emit its characteristic slice. Names are
+# FQN-anchored (Mundus bakes them as compile-time string literals, so they survive R8) to avoid
+# false-matching DI-graph slices (e.g. a bare *Application* also hits GeneratedApplicationComponent).
+# Tolerant >=1 thresholds absorb monkey-flow variance.
+validate_presets() { # $1=trace $2=label
+  local t="$1" l="$2"
+  assert_ge "[$l] preset:lifecycle (Activity.onCreate)"        "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*sample.MainActivity.onCreate*'")"   1
+  assert_ge "[$l] preset:startupPhases (Application.onCreate)" "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*sample.MainApplication.onCreate*'")" 1
+  assert_ge "[$l] preset:viewModel (TodoViewModel methods)"    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*sample.library.TodoViewModel.*'")"   1
+  assert_ge "[$l] preset:workers (MainWorker.doWork)"          "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*sample.MainWorker.doWork*'")"        1
+}
+
+# Structural correctness — thread attribution, manual-span closure, multi-module reach.
+validate_structure() { # $1=trace $2=label
+  local t="$1" l="$2"
+  local jt="JOIN thread_track tt ON s.track_id=tt.id JOIN thread t ON tt.utid=t.utid"
+  # Thread attribution: the suspend scoreFor work must run OFF the main thread — proves Mundus
+  # follows the coroutine across the Dispatchers.Default hop (a regression would mis-attribute it).
+  assert_ge "[$l] scoreFor on a background dispatcher thread" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice s $jt WHERE s.name GLOB '*scoreFor*' AND t.name GLOB 'DefaultDispatcher*'")" 1
+  assert_eq "[$l] scoreFor NOT on the main thread" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice s $jt WHERE s.name GLOB '*scoreFor*' AND t.name='main'")" 0
+  # Span balance: every manual beginTokenWith span must be closed by endToken. A closed slice has
+  # dur >= 0; an unclosed/leaked one is dur < 0. Directly guards an endToken-imbalance regression.
+  assert_eq "[$l] manual statsBatch spans all closed (endToken fired)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*statsBatch*' AND dur < 0")" 0
+  # Overall leak guard: unclosed slices at trace end should be a tiny fraction (only the boundary
+  # artifact from the last open frame), not a systemic begin/end imbalance.
+  local neg tot; neg="$(q "$t" "SELECT COUNT(*) FROM slice WHERE dur < 0")"; tot="$(q "$t" "SELECT COUNT(*) FROM slice")"
+  if [ "${tot:-0}" -gt 0 ] && [ "$(( ${neg:-0} * 100 ))" -lt "$(( tot * 2 ))" ]; then
+    pass "[$l] unclosed slices < 2% of total ($neg/$tot)"
+  else
+    fail "[$l] unclosed slices >= 2% ($neg/$tot) — possible begin/end leak"
+  fi
+  # Multi-module reach: slices from BOTH the app module (:sample) and the library module
+  # (:sample-library) must be present — guards a regression that breaks cross-module instrumentation.
+  assert_ge "[$l] app-module slices (:sample MainActivity)" "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*sample.MainActivity*'")" 1
+  assert_ge "[$l] library-module slices (:sample-library)"  "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*sample.library.*'")"      1
+}
+
 echo "=== Mundus trace scenarios on $DEVICE (mundus $(grep -m1 '^mundus' gradle/libs.versions.toml | cut -d'"' -f2)) ==="
 adb get-state >/dev/null 2>&1 || { echo "ERROR: device $DEVICE not available"; exit 2; }
 
@@ -139,6 +186,8 @@ if [ "$WHICH" = "debug" ] || [ "$WHICH" = "both" ]; then
   # todo count must be a sane non-negative int, not a corrupted/garbage long.
   assert_ge "[debug] debug.filter value=='all' (string put correct)" "$(q "$T" "SELECT COUNT(*) FROM args WHERE flat_key='debug.filter' AND string_value='all'")" 1
   assert_ge "[debug] debug.todoCount sane int [0,1000] (long put correct)" "$(q "$T" "SELECT COUNT(*) FROM args WHERE flat_key='debug.todoCount' AND int_value>=0 AND int_value<=1000")" 1
+  validate_presets "$T" debug
+  validate_structure "$T" debug
 fi
 
 if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
@@ -147,6 +196,9 @@ if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
   CE="$(q "$T" "SELECT COUNT(*) FROM slice WHERE name GLOB '*androidx.compose*'")"
   assert_eq "[release] heavy compose tracing dropped" "$CE" "0"
   validate_common "$T" release
+  # presets + structure must also survive R8 full mode (names are compile-time literals)
+  validate_presets "$T" release
+  validate_structure "$T" release
   if grep -q "message!" "$OUT/scenario-release.logcat.txt" 2>/dev/null; then
     pass "[release] no DI crash (App log emitted under R8 full mode)"
   else
