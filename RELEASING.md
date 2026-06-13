@@ -1,6 +1,17 @@
 Releasing
 =========
 
+> **⚠️ Fork distribution drift.** This fork now publishes to **GitHub Packages** under
+> `io.github.helios66` (`https://maven.pkg.github.com/helios66/whetstone-private`) — see the README
+> and `changelog.md`. The library/plugin build is already wired for GitHub Packages
+> (`gpr.user`/`gpr.key`; Maven Central + signing disabled in `gradle.properties`).
+>
+> The Maven Central / Sonatype + `deliveryhero` instructions below are **inherited from upstream and
+> not yet migrated** — the release CI (`.github/workflows/publish-release.yml`) still targets
+> Sonatype with the DeliveryHero bot identity. Migrating the workflow + this doc to GitHub Packages
+> is the remaining "Overhaul B" task (tracked in `todo.md`). Until then, treat the steps below as the
+> legacy process, not the fork's actual release path.
+
 Whetstone uses an automated release process triggered by GitHub Releases. The workflow automatically handles testing, publishing, tagging, and preparing the next development version.
 
 ## Quick Release Guide

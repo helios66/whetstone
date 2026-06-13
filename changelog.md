@@ -14,10 +14,17 @@ consumer-facing annotation and `Whetstone.*` runtime APIs are source-compatible.
 for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
 
 ### Added
+- **Dependency-graph visualization.** The Gradle plugin contributes a `whetstoneDepGraph` task
+  that renders the merged DI graph (scopes + contributions) as a Mermaid diagram (`.md`/`.mmd`/
+  `.html`). Per-module fragments are emitted by the KSP processor and aggregated whole-app across
+  modules. See "Visualizing the dependency graph" in the README.
 - Fast, isolated KSP processor unit tests (kctfork + KSP2) covering every generated contribution
   shape, the generated `@DependencyGraph`, and a regression test for the single-file-per-class
   aggregation.
 - Robolectric runtime DI assertions in the sample (CI-runnable, no emulator).
+- The `sample`/`sample-library` modules double as an auto-tracing testbed (integrated with the
+  Mundus compiler plugin) with an emulator-driven Perfetto-trace acceptance suite at
+  `scripts/mundus-trace-scenarios.sh`. Dev-only — not part of the published artifacts.
 
 ### Dependencies
 - AGP 8.13.0 → 8.13.2; `compileSdk` 35 → 36; `minSdk` 21 → 23.
@@ -27,6 +34,10 @@ for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
   androidx.test. Metro 1.2.0 → 1.2.1. Kotlin stays 2.3.20; AGP stays on the 8.x line.
 
 ### Changed
+- **Distribution moved to GitHub Packages.** This fork publishes under group `io.github.helios66`
+  to `https://maven.pkg.github.com/helios66/whetstone-private` (plugin id
+  `io.github.helios66.whetstone`). Consumers add that Maven repo with `gpr.user`/`gpr.key`
+  credentials — see the README. (Maven Central / Sonatype signing are disabled for this fork.)
 - **Migrated the DI engine from Square Anvil + Google Dagger to [Metro](https://github.com/zacsweers/metro) 1.2.0.**
   The public annotation API (`@ContributesViewModel`, `@ContributesFragment`,
   `@ContributesActivityInjector`, `@ContributesServiceInjector`, `@ContributesViewInjector`,
