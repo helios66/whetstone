@@ -7,9 +7,11 @@ history and `PLAN_METRO_MIGRATION.md` for the full design.
 _(none)_
 
 ## Open
-_(none)_
+- [ ] Overhaul B remaining tier (DeliveryHero purge, publishing) — NOT covered by the private-publish merge: rewrite `.github/workflows/publish-release.yml` (Sonatype→GHP, DH bot identity→yours, drop DH signing secrets, fix verify URLs); `settings.gradle.kts` `rootProject.name pd-whetstone→whetstone` + add the consumer-side GHP repo to `dependencyResolutionManagement`; `build-logic` convention plugin id `com.deliveryhero.whetstone.build`→helios66; `RELEASING.md` + `scripts/prepare-release.sh` + README badge
+- [ ] Overhaul A (package rename `com.deliveryhero.whetstone.*`→helios66) — DEFERRED by owner; revisit only on public release or classpath-coexistence need (touches ~71 files + KSP hardcoded literals + .api baselines + manifest)
 
 ## Done
+- [x] Merge local/private-publish into main (4aec94e) — wires private GitHub Packages publishing: library modules + gradle plugin + plugin-marker publish to helios66/whetstone-private; POM/flags repointed off DeliveryHero (mavenCentral/sign=false, POM_URL/SCM/DEVELOPER→helios66, all under whetstone-private). GHP publish tasks verified to materialize. Pushed to fork/main — done 2026-06-13
 - [x] Whetstone dependency-graph (Mermaid) feature — Phase 1 (per-module) + Phase 2 (whole-app aggregation) + renderer unit tests; verified on :sample (7 scopes/8 contributions) and :sample-library — done 2026-06-13 (see docs/dep-graph-spec.md)
 - [x] Stage 9: emulator parity run on Pixel 6a — Application/ViewModel(Compose + delegate)/View/Service/Worker injection all verified working; nested App→Activity→View graph extensions resolve; no crashes — done 2026-06-12
 - [x] Stage 10: configuration-cache-test updated — drops removed-proguard test; adds 2 codegen tests asserting the graph + injector + instance contribution shapes; worker LoadClassTest retained; all pass — done 2026-06-12
