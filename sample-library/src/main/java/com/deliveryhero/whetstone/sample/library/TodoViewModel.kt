@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.deliveryhero.whetstone.viewmodel.ContributesViewModel
 import com.example.mundusdemo.AutoTracedDemo
+import com.example.mundusdemo.PartlyTracedDemo
 import com.unpopulardev.mundus.runtime.Mundus
 import com.unpopulardev.mundus.runtime.TraceArg
 import javax.inject.Inject
@@ -33,8 +34,9 @@ public class TodoViewModel @Inject constructor(
     // Precomputed O(1) lookup — avoids a linear scan per row, per recomposition.
     private val categoryNames: Map<Int, String> = categories.associate { it.id to it.name }
 
-    // @AutoTrace coverage fixture (lives outside includePackages; traced only via the annotation).
+    // @AutoTrace coverage fixtures (live outside includePackages; traced only via the annotation).
     private val autoTraced = AutoTracedDemo()
+    private val partlyTraced = PartlyTracedDemo()
 
     private val _todos = mutableStateListOf<Todo>()
     public val todos: List<Todo> get() = _todos
@@ -171,6 +173,11 @@ public class TodoViewModel @Inject constructor(
             acc += autoTraced.weigh(ids)
             acc += autoTraced.weighAsync(ids)
             autoTraced.untraced(ids)
+            // Function-level permutations: @AutoTrace on one method of an un-annotated class
+            // (only tracedOne should trace, plainTwo must not), and @NoTrace on an in-package method.
+            acc += partlyTraced.tracedOne(ids)
+            acc += partlyTraced.plainTwo(ids)
+            acc += dependency.silentHelper(ids.size)
             acc
         } finally {
             Mundus.endToken(token)

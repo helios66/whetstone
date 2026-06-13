@@ -182,6 +182,15 @@ validate_autotrace() { # $1=trace $2=label
     "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*AutoTracedDemo.weighAsync*'")" 1
   assert_eq "[$l] @NoTrace opt-out (AutoTracedDemo.untraced NOT traced)" \
     "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*AutoTracedDemo.untraced*'")" 0
+  # Function-level permutations: @AutoTrace on one method of an UN-annotated class (only that
+  # method traces, the sibling stays untraced), and @NoTrace on a method of an IN-includePackages
+  # class (stays untraced even though a sibling like getMessage is traced).
+  assert_ge "[$l] fn-level @AutoTrace (PartlyTracedDemo.tracedOne)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*PartlyTracedDemo.tracedOne*'")" 1
+  assert_eq "[$l] fn-level @AutoTrace sibling NOT traced (PartlyTracedDemo.plainTwo)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*PartlyTracedDemo.plainTwo*'")" 0
+  assert_eq "[$l] fn-level @NoTrace in included pkg (MainDependency.silentHelper NOT traced)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*MainDependency.silentHelper*'")" 0
 }
 
 echo "=== Mundus trace scenarios on $DEVICE (mundus $(grep -m1 '^mundus' gradle/libs.versions.toml | cut -d'"' -f2)) ==="

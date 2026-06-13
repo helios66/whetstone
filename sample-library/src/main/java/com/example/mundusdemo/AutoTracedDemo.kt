@@ -35,3 +35,24 @@ public class AutoTracedDemo {
     @NoTrace
     public fun untraced(values: List<Int>): Int = values.sum()
 }
+
+/**
+ * Function-level @AutoTrace coverage. The CLASS is **not** annotated and lives outside
+ * `includePackages`, so only the explicitly-annotated method must be traced — the un-annotated
+ * sibling must stay untraced. This isolates per-function opt-in from class-level opt-in.
+ */
+public class PartlyTracedDemo {
+
+    /** @AutoTrace on a single function of an otherwise-untraced class. */
+    @AutoTrace
+    public fun tracedOne(values: List<Int>): Int {
+        var acc = 0
+        for (v in values) {
+            acc += v + 3
+        }
+        return acc
+    }
+
+    /** No annotation, class not annotated, package not included → must NOT be traced. */
+    public fun plainTwo(values: List<Int>): Int = values.size * 2
+}
