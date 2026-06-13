@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.deliveryhero.whetstone.viewmodel.ContributesViewModel
 import com.example.mundusdemo.AutoTracedDemo
+import com.example.mundusdemo.ConflictDemo
 import com.example.mundusdemo.PartlyTracedDemo
 import com.unpopulardev.mundus.runtime.Mundus
 import com.unpopulardev.mundus.runtime.TraceArg
@@ -37,6 +38,7 @@ public class TodoViewModel @Inject constructor(
     // @AutoTrace coverage fixtures (live outside includePackages; traced only via the annotation).
     private val autoTraced = AutoTracedDemo()
     private val partlyTraced = PartlyTracedDemo()
+    private val conflictDemo = ConflictDemo()
 
     private val _todos = mutableStateListOf<Todo>()
     public val todos: List<Todo> get() = _todos
@@ -178,6 +180,9 @@ public class TodoViewModel @Inject constructor(
             acc += partlyTraced.tracedOne(ids)
             acc += partlyTraced.plainTwo(ids)
             acc += dependency.silentHelper(ids.size)
+            // Precedence: @NoTrace class with an @AutoTrace method — observed that @NoTrace wins.
+            acc += conflictDemo.contested(ids)
+            acc += conflictDemo.alsoSilent(ids)
             acc
         } finally {
             Mundus.endToken(token)

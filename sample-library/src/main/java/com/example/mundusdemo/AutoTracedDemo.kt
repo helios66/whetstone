@@ -3,6 +3,8 @@ package com.example.mundusdemo
 import com.unpopulardev.mundus.runtime.AutoTrace
 import com.unpopulardev.mundus.runtime.NoTrace
 import kotlinx.coroutines.delay
+// NOTE: precedence observed in Mundus 0.9.0 — class-level @NoTrace overrides a function-level
+// @AutoTrace (the annotated method is NOT traced), and Mundus emits no warning about the override.
 
 /**
  * Mundus annotation-coverage fixture.
@@ -55,4 +57,25 @@ public class PartlyTracedDemo {
 
     /** No annotation, class not annotated, package not included → must NOT be traced. */
     public fun plainTwo(values: List<Int>): Int = values.size * 2
+}
+
+/**
+ * Precedence probe: the CLASS is @NoTrace but [contested] is @AutoTrace. This documents which
+ * annotation wins when they conflict (function-level opt-in vs class-level opt-out).
+ */
+@NoTrace
+public class ConflictDemo {
+
+    /** @AutoTrace on a method of a @NoTrace class — who wins? */
+    @AutoTrace
+    public fun contested(values: List<Int>): Int {
+        var acc = 0
+        for (v in values) {
+            acc += v * 5 + 2
+        }
+        return acc
+    }
+
+    /** No method annotation; class is @NoTrace → must NOT be traced. */
+    public fun alsoSilent(values: List<Int>): Int = values.size + 1
 }

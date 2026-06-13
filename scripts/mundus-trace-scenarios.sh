@@ -82,9 +82,16 @@ run_variant() { # $1=label  $2=apk-glob  $3...=extra gradle args
   local label="$1" apkglob="$2"; shift 2
   local gradle_task; [ "$label" = "debug" ] && gradle_task=":sample:assembleDebug" || gradle_task=":sample:assembleRelease"
   echo ">>> [$label] building ($gradle_task $*)" >&2
-  ./gradlew "$gradle_task" "$@" --console=plain -q >&2
+  # FAIL LOUDLY on a build error — never fall through to a stale APK (which would produce bogus,
+  # silently-wrong results). The release variants additionally clean the APK so a flagged build
+  # can't reuse an unflagged release-default APK (they share the assembleRelease task + output path).
+  [ "$label" = "debug" ] || rm -f $apkglob 2>/dev/null || true
+  if ! ./gradlew "$gradle_task" "$@" --console=plain -q >&2; then
+    echo "FATAL [$label] build failed — aborting (no stale-APK fallback)" >&2; exit 3
+  fi
 
-  local apk; apk="$(ls -t $apkglob | head -1)"
+  local apk; apk="$(ls -t $apkglob 2>/dev/null | head -1)"
+  [ -n "$apk" ] && [ -f "$apk" ] || { echo "FATAL [$label] no APK produced at $apkglob" >&2; exit 3; }
   echo ">>> [$label] installing $apk" >&2
   adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
   adb shell pm uninstall "$PKG" >/dev/null 2>&1 || true
@@ -92,32 +99,42 @@ run_variant() { # $1=label  $2=apk-glob  $3...=extra gradle args
   adb shell rm -rf "$TDIR" >/dev/null 2>&1 || true
   adb logcat -c >/dev/null 2>&1 || true
 
-  echo ">>> [$label] driving UI flow" >&2
-  adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
-  sleep 4
-  adb shell input tap 540 1600 >/dev/null 2>&1 || true
-  adb shell input text "Scenario" >/dev/null 2>&1 || true
-  local i; for i in 1 2 3 4 5; do
-    adb shell input tap 540 1000 >/dev/null 2>&1 || true
-    adb shell input swipe 540 1400 540 700 250 >/dev/null 2>&1 || true
+  # Drive the flow + capture, with an integrity-checked retry: the streaming-protobuf trace can be
+  # truncated mid-flush, producing a corrupt/tiny file. Rather than assert on garbage (a confusing
+  # 'got ?'), re-run the flow up to 3x until the pulled trace parses and carries a real slice count.
+  local dest="$OUT/scenario-$label.perfetto-trace" attempt slices i f
+  for attempt in 1 2 3; do
+    adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
+    adb shell rm -rf "$TDIR" >/dev/null 2>&1 || true
+    adb logcat -c >/dev/null 2>&1 || true
+    echo ">>> [$label] driving UI flow (attempt $attempt)" >&2
+    adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+    sleep 4
+    adb shell input tap 540 1600 >/dev/null 2>&1 || true
+    adb shell input text "Scenario" >/dev/null 2>&1 || true
+    for i in 1 2 3 4 5; do
+      adb shell input tap 540 1000 >/dev/null 2>&1 || true
+      adb shell input swipe 540 1400 540 700 250 >/dev/null 2>&1 || true
+    done
+    adb shell monkey -p "$PKG" --throttle 90 --pct-touch 80 --pct-syskeys 0 -v 140 >/dev/null 2>&1 || true
+    sleep 2
+    adb logcat -d -s App:D > "$OUT/scenario-$label.logcat.txt" 2>/dev/null || true
+    # Clean capture: background (flush) -> settle past the 500ms interval -> force-stop ->
+    # let the OS finish writing the file -> pull.
+    adb shell input keyevent KEYCODE_HOME >/dev/null 2>&1 || true
+    sleep 2
+    adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
+    sleep 3
+    f="$(adb shell ls -t "$TDIR" 2>/dev/null | grep -i '\.perfetto' | head -1 | tr -d '\r')"
+    [ -n "$f" ] && adb pull "$TDIR/$f" "$dest" >/dev/null 2>&1
+    slices="$(q "$dest" "SELECT COUNT(*) FROM slice")"
+    if [ -n "$slices" ] && [ "$slices" -ge 100 ] 2>/dev/null; then
+      echo ">>> [$label] capture OK ($slices slices, attempt $attempt)" >&2
+      echo "$dest"; return 0
+    fi
+    echo ">>> [$label] bad/corrupt trace (slices='${slices:-none}') — retrying" >&2
   done
-  adb shell monkey -p "$PKG" --throttle 90 --pct-touch 80 --pct-syskeys 0 -v 140 >/dev/null 2>&1 || true
-  sleep 2
-
-  # capture the DI log line first
-  adb logcat -d -s App:D > "$OUT/scenario-$label.logcat.txt" 2>/dev/null || true
-  # Clean trace capture: Mundus flushes every 500ms to a streaming protobuf. A bare
-  # force-stop SIGKILLs mid-flush and truncates the final packet (corrupt trace). So:
-  # background (triggers a flush) -> settle past the flush interval -> force-stop ->
-  # let the OS finish writing the file to disk -> only then pull.
-  adb shell input keyevent KEYCODE_HOME >/dev/null 2>&1 || true
-  sleep 2
-  adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
-  sleep 3
-  local f; f="$(adb shell ls -t "$TDIR" 2>/dev/null | grep -i '\.perfetto' | head -1 | tr -d '\r')"
-  local dest="$OUT/scenario-$label.perfetto-trace"
-  adb pull "$TDIR/$f" "$dest" >&2
-  echo "$dest"
+  echo "FATAL [$label] no valid trace after 3 attempts" >&2; exit 4
 }
 
 # --- validations ----------------------------------------------------------
@@ -191,6 +208,11 @@ validate_autotrace() { # $1=trace $2=label
     "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*PartlyTracedDemo.plainTwo*'")" 0
   assert_eq "[$l] fn-level @NoTrace in included pkg (MainDependency.silentHelper NOT traced)" \
     "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*MainDependency.silentHelper*'")" 0
+  # Precedence (observed in 0.9.0): a class-level @NoTrace overrides a function-level @AutoTrace —
+  # the @AutoTrace method stays untraced. This pins the contract; if Mundus flips it (fn opt-in
+  # wins), 'contested' will start tracing and this assertion goes red, flagging the semantic change.
+  assert_eq "[$l] precedence: @NoTrace class beats @AutoTrace fn (ConflictDemo.contested untraced)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*ConflictDemo.contested*'")" 0
 }
 
 echo "=== Mundus trace scenarios on $DEVICE (mundus $(grep -m1 '^mundus' gradle/libs.versions.toml | cut -d'"' -f2)) ==="
