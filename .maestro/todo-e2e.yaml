@@ -1,0 +1,59 @@
+# Maestro e2e flow for the Whetstone sample Todo app.
+#
+# Drives the app deterministically through its main surfaces so Mundus captures a representative
+# trace (Compose bodies, ViewModel methods, the background stats suspend work, navigation). Ends by
+# backgrounding the app (Home) so Mundus flushes its streaming trace before the runner pulls it.
+#
+# Run via scripts/maestro-trace-e2e.sh (which builds+installs the release APK, runs this flow,
+# then captures + validates the Perfetto trace). Selectors use the app's visible text labels;
+# adjust if the UI copy changes.
+appId: com.deliveryhero.whetstone.sample
+---
+- launchApp:
+    clearState: true
+
+# --- add a couple of todos (exercises add() -> getMessage @TraceArg, ViewModel mutations) ---
+- tapOn:
+    text: "New todo"
+- inputText: "Buy groceries"
+- tapOn:
+    text: "Add"
+- tapOn:
+    text: "New todo"
+- inputText: "Call the plumber"
+- tapOn:
+    text: "Add"
+
+# --- filter by category, then back to all (selectFilter -> recompositions) ---
+- runFlow:
+    when:
+      visible: "All"
+    commands:
+      - tapOn:
+          text: "All"
+
+# --- open a todo's detail screen, edit + save (detail composables, editTodo) ---
+- tapOn:
+    text: "Buy groceries"
+- assertVisible: "Save"
+- tapOn:
+    text: "Note"
+- inputText: "remember the coupons"
+- tapOn:
+    text: "Save"
+
+# --- visit the Stats screen (triggers refreshStats -> computeStatsScore background suspend work) ---
+- tapOn:
+    text: "Stats"
+- assertVisible: "Priority score"
+
+# --- toggle a todo done, then settle so the background stats + cancellation work flushes ---
+- back
+- tapOn:
+    text: "Done"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Background the app so Mundus flushes the trace; the runner force-stops + pulls afterwards.
+- pressKey: Home
