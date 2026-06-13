@@ -17,6 +17,26 @@ apiValidation {
     ignoredPackages.add("metro.hints")
 }
 
+// Local-only: publish the runtime + compiler artifacts to a private GitHub Packages registry.
+// Pair with `./gradlew publishAllPublicationsToGitHubPackagesRepository`. Credentials come from the
+// `gpr.user`/`gpr.key` Gradle properties or the GITHUB_ACTOR/GITHUB_TOKEN environment variables.
+subprojects {
+    plugins.withId("com.vanniktech.maven.publish") {
+        configure<org.gradle.api.publish.PublishingExtension> {
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
+                    credentials {
+                        username = (findProperty("gpr.user") as String?) ?: System.getenv("GITHUB_ACTOR")
+                        password = (findProperty("gpr.key") as String?) ?: System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

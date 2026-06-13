@@ -9,6 +9,10 @@ plugins {
 }
 
 loadParentProperties()
+// The java-gradle-plugin `pluginMaven` publication takes its groupId from project.group, so set it
+// (and version) from the parent gradle.properties that loadParentProperties() loaded above.
+group = project.property("GROUP").toString()
+version = project.property("VERSION_NAME").toString()
 
 fun loadParentProperties() {
     val properties = Properties()
@@ -39,6 +43,20 @@ gradlePlugin {
         create("whetstone") {
             id = "io.github.helios66.whetstone"
             implementationClass = "com.deliveryhero.whetstone.gradle.WhetstonePlugin"
+        }
+    }
+}
+
+// Local-only: publish the Gradle plugin (and its marker) to a private GitHub Packages registry.
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
+            credentials {
+                username = (findProperty("gpr.user") as String?) ?: System.getenv("GITHUB_ACTOR")
+                password = (findProperty("gpr.key") as String?) ?: System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
