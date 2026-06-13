@@ -19,6 +19,16 @@
 #     - everything else still survives R8 full mode       (DI + suspend + manual span + metadata)
 #     - no DI crash                                       ("App: ... message!" in logcat)
 #
+# Regression guards (also run in `both`):
+#   - metadata VALUE correctness (debug): debug.filter == 'all', debug.todoCount a sane int —
+#     catches typed put() writing garbage or to the wrong Perfetto column.
+#   - composeTracing causality (release-default): a release built WITHOUT the flag must STILL be
+#     heavy. Paired with the lean flagged release, this proves the flag (not R8 over-stripping)
+#     causes the lean result — guarding against a false-lean and the 0.6.0 auto-install regression.
+#
+# Note: `mundus { enabled = false }` is NOT used as a negative control — verified (0.9.0) to be a
+# no-op (the compiler instruments regardless), so it can't gate a control build. Reported upstream.
+#
 # Usage:   scripts/mundus-trace-scenarios.sh [debug|release|both]   (default: both)
 # Env:     DEVICE (default emulator-5556), JAVA_HOME, ANDROID_HOME
 #
@@ -124,6 +134,11 @@ if [ "$WHICH" = "debug" ] || [ "$WHICH" = "both" ]; then
   assert_ge "[debug] heavy compose tracing active" "$CE" "$COMPOSE_HEAVY_MIN"
   validate_common "$T" debug
   assert_ge "[debug] debug.todo rows (@TraceArg suspend)" "$(q "$T" "SELECT COUNT(*) FROM args WHERE flat_key='debug.todo'")" 1
+  # R2 — metadata VALUE correctness (not just presence): guards a regression where typed
+  # put() writes garbage or to the wrong column. Unfiltered flow => filter == 'all'; the
+  # todo count must be a sane non-negative int, not a corrupted/garbage long.
+  assert_ge "[debug] debug.filter value=='all' (string put correct)" "$(q "$T" "SELECT COUNT(*) FROM args WHERE flat_key='debug.filter' AND string_value='all'")" 1
+  assert_ge "[debug] debug.todoCount sane int [0,1000] (long put correct)" "$(q "$T" "SELECT COUNT(*) FROM args WHERE flat_key='debug.todoCount' AND int_value>=0 AND int_value<=1000")" 1
 fi
 
 if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
@@ -137,6 +152,18 @@ if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
   else
     fail "[release] App DI log missing — possible R8/DI breakage"
   fi
+fi
+
+if [ "$WHICH" = "both" ] || [ "$WHICH" = "regression" ]; then
+  echo "--- REGRESSION GUARD: composeTracing causality (release WITHOUT the flag must be heavy) ---"
+  # Builds release with R8 full mode but does NOT pass -Pmundus.composeTracing=false, so the
+  # compose-tracing dep stays and the heavy CompositionTracer should be present. Paired with the
+  # main RELEASE scenario (flag on -> 0), this proves the lean release is CAUSED by the flag and
+  # not by R8 silently stripping tracing (a false-lean that would make the lean test pass for the
+  # wrong reason). Also catches the 0.6.0-class regression where composeTracing can't be turned off.
+  T="$(run_variant release-default 'sample/build/outputs/apk/release/*.apk')"
+  CE="$(q "$T" "SELECT COUNT(*) FROM slice WHERE name GLOB '*androidx.compose*'")"
+  assert_ge "[release-default] compose tracing present without the flag (flag is causal, not R8)" "$CE" "$COMPOSE_HEAVY_MIN"
 fi
 
 echo "==="
