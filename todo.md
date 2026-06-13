@@ -12,6 +12,7 @@ _(none)_
 
 ## Done
 - [x] Merge local/private-publish into main (4aec94e) — wires private GitHub Packages publishing: library modules + gradle plugin + plugin-marker publish to helios66/whetstone-private; POM/flags repointed off DeliveryHero (mavenCentral/sign=false, POM_URL/SCM/DEVELOPER→helios66, all under whetstone-private). GHP publish tasks verified to materialize. Pushed to fork/main — done 2026-06-13
+- [x] Mundus 0.6.0 → 0.7.0 bump + emulator trace test — 0.7.0 ships the requested opt-out: `mundus { composeTracing }` build flag (default true; `-Pmundus.composeTracing=false` drops the compose-tracing dep) + runtime kill switch `-Dmundus.composeTracing=false`. Replaced the `configurations…exclude` hack with the official flag. Verified debug 7630 compose events vs release (flag off) 0; `@TraceArg`/`beginTokenWith` metadata survive R8 in both — done 2026-06-13
 - [x] Whetstone dependency-graph (Mermaid) feature — Phase 1 (per-module) + Phase 2 (whole-app aggregation) + renderer unit tests; verified on :sample (7 scopes/8 contributions) and :sample-library — done 2026-06-13 (see docs/dep-graph-spec.md)
 - [x] Stage 9: emulator parity run on Pixel 6a — Application/ViewModel(Compose + delegate)/View/Service/Worker injection all verified working; nested App→Activity→View graph extensions resolve; no crashes — done 2026-06-12
 - [x] Stage 10: configuration-cache-test updated — drops removed-proguard test; adds 2 codegen tests asserting the graph + injector + instance contribution shapes; worker LoadClassTest retained; all pass — done 2026-06-12

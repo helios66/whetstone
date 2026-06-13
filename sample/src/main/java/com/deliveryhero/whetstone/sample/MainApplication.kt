@@ -23,8 +23,9 @@ class MainApplication : Application(), ApplicationComponentOwner {
     override val applicationComponent = GeneratedApplicationComponent.create(this)
 
     override fun onCreate() {
-        // Compose composition tracing auto-installs in 0.6.0 when mundus-compose-tracing is on the
-        // classpath. It's wired as a `debugImplementation` so it only ships (and traces) in debug.
+        // Compose composition tracing auto-installs when mundus-compose-tracing is on the classpath
+        // (0.7.0). Release is built with -Pmundus.composeTracing=false so the plugin drops the dep;
+        // a runtime kill switch (-Dmundus.composeTracing=false) also exists for a present-but-off case.
         Whetstone.inject(this)
         super.onCreate()
         Log.d("App", dependency.getMessage("Application"))
