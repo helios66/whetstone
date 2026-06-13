@@ -101,3 +101,6 @@ lint/tmp/
 PLAN_METRO_MIGRATION.md
 .hotswan/
 trace_processor
+
+# Generated patch files (upstream PR exports)
+patches/
