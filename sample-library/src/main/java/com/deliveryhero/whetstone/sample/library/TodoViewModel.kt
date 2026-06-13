@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.deliveryhero.whetstone.viewmodel.ContributesViewModel
+import com.example.mundusdemo.AutoTracedDemo
 import com.unpopulardev.mundus.runtime.Mundus
 import com.unpopulardev.mundus.runtime.TraceArg
 import javax.inject.Inject
@@ -31,6 +32,9 @@ public class TodoViewModel @Inject constructor(
 
     // Precomputed O(1) lookup — avoids a linear scan per row, per recomposition.
     private val categoryNames: Map<Int, String> = categories.associate { it.id to it.name }
+
+    // @AutoTrace coverage fixture (lives outside includePackages; traced only via the annotation).
+    private val autoTraced = AutoTracedDemo()
 
     private val _todos = mutableStateListOf<Todo>()
     public val todos: List<Todo> get() = _todos
@@ -160,6 +164,13 @@ public class TodoViewModel @Inject constructor(
             for (todo in _todos.toList()) {
                 acc += scoreFor(todo)
             }
+            // Exercise the @AutoTrace fixture (a class OUTSIDE includePackages): a plain method,
+            // a suspend method, and a @NoTrace method that must stay untraced. Runs every refresh
+            // regardless of the todo count, so the harness can assert the annotation-driven path.
+            val ids = _todos.map { it.id }
+            acc += autoTraced.weigh(ids)
+            acc += autoTraced.weighAsync(ids)
+            autoTraced.untraced(ids)
             acc
         } finally {
             Mundus.endToken(token)

@@ -171,6 +171,19 @@ validate_structure() { # $1=trace $2=label
   assert_ge "[$l] library-module slices (:sample-library)"  "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*sample.library.*'")"      1
 }
 
+# Annotation-driven opt-in/opt-out — AutoTracedDemo lives OUTSIDE includePackages, so a slice for
+# it can only come from @AutoTrace. Covers @AutoTrace on a non-coroutine AND a coroutine method,
+# plus @NoTrace (a method inside the @AutoTrace class that must stay untraced — opt-out precedence).
+validate_autotrace() { # $1=trace $2=label
+  local t="$1" l="$2"
+  assert_ge "[$l] @AutoTrace non-coroutine (AutoTracedDemo.weigh)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*AutoTracedDemo.weigh*' AND name NOT GLOB '*weighAsync*'")" 1
+  assert_ge "[$l] @AutoTrace coroutine (AutoTracedDemo.weighAsync)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*AutoTracedDemo.weighAsync*'")" 1
+  assert_eq "[$l] @NoTrace opt-out (AutoTracedDemo.untraced NOT traced)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*AutoTracedDemo.untraced*'")" 0
+}
+
 echo "=== Mundus trace scenarios on $DEVICE (mundus $(grep -m1 '^mundus' gradle/libs.versions.toml | cut -d'"' -f2)) ==="
 adb get-state >/dev/null 2>&1 || { echo "ERROR: device $DEVICE not available"; exit 2; }
 
@@ -188,6 +201,7 @@ if [ "$WHICH" = "debug" ] || [ "$WHICH" = "both" ]; then
   assert_ge "[debug] debug.todoCount sane int [0,1000] (long put correct)" "$(q "$T" "SELECT COUNT(*) FROM args WHERE flat_key='debug.todoCount' AND int_value>=0 AND int_value<=1000")" 1
   validate_presets "$T" debug
   validate_structure "$T" debug
+  validate_autotrace "$T" debug
 fi
 
 if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
@@ -199,6 +213,7 @@ if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
   # presets + structure must also survive R8 full mode (names are compile-time literals)
   validate_presets "$T" release
   validate_structure "$T" release
+  validate_autotrace "$T" release
   if grep -q "message!" "$OUT/scenario-release.logcat.txt" 2>/dev/null; then
     pass "[release] no DI crash (App log emitted under R8 full mode)"
   else
