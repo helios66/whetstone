@@ -21,7 +21,7 @@ androidxTestCore = "1.7.0"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 material = "1.14.0"
-mundus = "0.10.1"
+mundus = "0.10.2"
 
 [plugins]
 androidApp = { id = "com.android.application", version.ref = "agp" }
