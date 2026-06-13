@@ -7,8 +7,16 @@ pluginManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
-        // Mundus (auto-tracing Kotlin compiler plugin) is published to mavenLocal.
-        mavenLocal()
+        // Mundus (auto-tracing Kotlin compiler plugin) — private GitHub Packages registry.
+        // Creds come from gpr.user/gpr.key (~/.gradle/gradle.properties) or GITHUB_ACTOR/TOKEN.
+        maven {
+            name = "MundusGitHubPackages"
+            url = uri("https://maven.pkg.github.com/helios66/mundus")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 
     includeBuild("whetstone-gradle-plugin")
@@ -20,8 +28,15 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // mundus-runtime
-        mavenLocal()
+        // Mundus runtime + compose-tracing — private GitHub Packages registry (same creds).
+        maven {
+            name = "MundusGitHubPackages"
+            url = uri("https://maven.pkg.github.com/helios66/mundus")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
 
