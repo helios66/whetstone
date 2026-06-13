@@ -33,8 +33,10 @@
 #     heavy. Paired with the lean flagged release, this proves the flag (not R8 over-stripping)
 #     causes the lean result — guarding against a false-lean and the 0.6.0 auto-install regression.
 #
-# Note: `mundus { enabled = false }` is NOT used as a negative control — verified (0.9.0) to be a
-# no-op (the compiler instruments regardless), so it can't gate a control build. Reported upstream.
+# Negative control (also run in `both`): a build with -Pmundus.enabled=false -Pmundus.composeTracing
+#   =false. EVERY compiler-injected slice must vanish (proving the positive scenarios' slices are
+#   genuinely Mundus-authored), while the hand-written beginTokenWith span survives and the app still
+#   runs. Requires the enabled=false fix (Mundus >= 0.10.1); it was a no-op in 0.9.0.
 #
 # Usage:   scripts/mundus-trace-scenarios.sh [debug|release|both]   (default: both)
 # Env:     DEVICE (default emulator-5556), JAVA_HOME, ANDROID_HOME
@@ -80,12 +82,13 @@ q() {
 # --- build + drive one variant; echoes the pulled trace path --------------
 run_variant() { # $1=label  $2=apk-glob  $3...=extra gradle args
   local label="$1" apkglob="$2"; shift 2
-  local gradle_task; [ "$label" = "debug" ] && gradle_task=":sample:assembleDebug" || gradle_task=":sample:assembleRelease"
+  # release* variants -> assembleRelease; everything else (debug, disabled) -> assembleDebug
+  local gradle_task; case "$label" in release*) gradle_task=":sample:assembleRelease";; *) gradle_task=":sample:assembleDebug";; esac
   echo ">>> [$label] building ($gradle_task $*)" >&2
-  # FAIL LOUDLY on a build error — never fall through to a stale APK (which would produce bogus,
-  # silently-wrong results). The release variants additionally clean the APK so a flagged build
-  # can't reuse an unflagged release-default APK (they share the assembleRelease task + output path).
-  [ "$label" = "debug" ] || rm -f $apkglob 2>/dev/null || true
+  # FAIL LOUDLY on a build error — never fall through to a stale APK (bogus, silently-wrong results).
+  # Always clean the APK first: variants that share a task+output path but differ only by -P flags
+  # (debug vs disabled, release vs release-default) must not reuse each other's APK.
+  rm -f $apkglob 2>/dev/null || true
   if ! ./gradlew "$gradle_task" "$@" --console=plain -q >&2; then
     echo "FATAL [$label] build failed — aborting (no stale-APK fallback)" >&2; exit 3
   fi
@@ -102,6 +105,10 @@ run_variant() { # $1=label  $2=apk-glob  $3...=extra gradle args
   # Drive the flow + capture, with an integrity-checked retry: the streaming-protobuf trace can be
   # truncated mid-flush, producing a corrupt/tiny file. Rather than assert on garbage (a confusing
   # 'got ?'), re-run the flow up to 3x until the pulled trace parses and carries a real slice count.
+  # Per-scenario integrity floor: a disabled build legitimately produces only the surviving manual
+  # span(s), so it must just PARSE and carry >=1 slice; normal builds must clear a real floor (a
+  # truncated trace fails to parse and q returns empty, which is rejected either way).
+  local min; case "$label" in disabled) min=1;; *) min=100;; esac
   local dest="$OUT/scenario-$label.perfetto-trace" attempt slices i f
   for attempt in 1 2 3; do
     adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
@@ -128,7 +135,7 @@ run_variant() { # $1=label  $2=apk-glob  $3...=extra gradle args
     f="$(adb shell ls -t "$TDIR" 2>/dev/null | grep -i '\.perfetto' | head -1 | tr -d '\r')"
     [ -n "$f" ] && adb pull "$TDIR/$f" "$dest" >/dev/null 2>&1
     slices="$(q "$dest" "SELECT COUNT(*) FROM slice")"
-    if [ -n "$slices" ] && [ "$slices" -ge 100 ] 2>/dev/null; then
+    if [ -n "$slices" ] && [ "$slices" -ge "$min" ] 2>/dev/null; then
       echo ">>> [$label] capture OK ($slices slices, attempt $attempt)" >&2
       echo "$dest"; return 0
     fi
@@ -215,6 +222,21 @@ validate_autotrace() { # $1=trace $2=label
     "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*ConflictDemo.contested*'")" 0
 }
 
+# Negative control — built with -Pmundus.enabled=false -Pmundus.composeTracing=false. EVERY
+# compiler-injected slice must vanish (this is what proves the positive scenarios' slices are
+# genuinely Mundus-authored, not ambient), while the hand-written runtime API (beginTokenWith)
+# survives — it doesn't go through the compiler. Requires the enabled=false fix (Mundus >= 0.10.1).
+validate_disabled() { # $1=trace $2=label
+  local t="$1" l="$2"
+  local nm
+  for nm in 'getMessage' 'scoreFor' 'library.TodoViewModel.' 'MainActivity.onCreate' 'MainWorker.doWork' \
+            'AutoTracedDemo.weigh' 'PartlyTracedDemo.tracedOne' 'androidx.compose'; do
+    assert_eq "[$l] disabled: no '$nm' slices (compiler off)" "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*$nm*'")" 0
+  done
+  assert_eq "[$l] disabled: no @TraceArg metadata (debug.title)" "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.title'")" 0
+  assert_ge "[$l] disabled: manual beginTokenWith span SURVIVES (statsBatch)" "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*statsBatch*'")" 1
+}
+
 echo "=== Mundus trace scenarios on $DEVICE (mundus $(grep -m1 '^mundus' gradle/libs.versions.toml | cut -d'"' -f2)) ==="
 adb get-state >/dev/null 2>&1 || { echo "ERROR: device $DEVICE not available"; exit 2; }
 
@@ -262,6 +284,21 @@ if [ "$WHICH" = "both" ] || [ "$WHICH" = "regression" ]; then
   T="$(run_variant release-default 'sample/build/outputs/apk/release/*.apk')"
   CE="$(q "$T" "SELECT COUNT(*) FROM slice WHERE name GLOB '*androidx.compose*'")"
   assert_ge "[release-default] compose tracing present without the flag (flag is causal, not R8)" "$CE" "$COMPOSE_HEAVY_MIN"
+fi
+
+if [ "$WHICH" = "both" ] || [ "$WHICH" = "disabled" ]; then
+  echo "--- NEGATIVE CONTROL: Mundus disabled (-Pmundus.enabled=false) ---"
+  # The whole point: prove the slices our positive scenarios count are genuinely Mundus-compiler-
+  # authored (not ambient). With the compiler off, every compiler-injected slice must vanish, while
+  # the hand-written runtime API (beginTokenWith) still fires. Requires the enabled=false fix
+  # (Mundus >= 0.10.1); on 0.9.0 this scenario fails by design (the flag was a no-op).
+  T="$(run_variant disabled 'sample/build/outputs/apk/debug/*.apk' -Pmundus.enabled=false -Pmundus.composeTracing=false)"
+  validate_disabled "$T" disabled
+  if grep -q "message!" "$OUT/scenario-disabled.logcat.txt" 2>/dev/null; then
+    pass "[disabled] app still runs with tracing off (App DI log emitted)"
+  else
+    fail "[disabled] App DI log missing — app broke with Mundus disabled"
+  fi
 fi
 
 echo "==="
