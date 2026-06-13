@@ -12,7 +12,8 @@ mundus {
     // Trace the entire app: top-level prefix captures all library classes too.
     includePackages.set(listOf("com.deliveryhero.whetstone"))
     // Trace suspend functions too (background coroutine work in the ViewModel).
-    traceSuspendFunctions.set(true)
+    // 0.11.1 renamed traceSuspendFunctions -> instrumentSuspendFunctions.
+    instrumentSuspendFunctions.set(true)
     // 0.4.0 presets: instrument framework callbacks without widening includePackages.
     presets {
         compose.set(true)    // @Composable bodies
