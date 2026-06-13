@@ -158,6 +158,18 @@ public class TodoViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Launch the slow [TracingProbe.cancellable] and cancel it mid-flight. Tests that Mundus closes
+     * a traced suspend fn's span cleanly on cancellation (no leaked / negative-duration slice).
+     */
+    public fun runCancellation() {
+        val job = viewModelScope.launch { probe.cancellable() }
+        viewModelScope.launch {
+            delay(60)
+            job.cancel()
+        }
+    }
+
     /** Aggregate a weighted score across all todos on a background dispatcher. */
     private suspend fun computeStatsScore(): Int = withContext(Dispatchers.Default) {
         // 0.6.0 manual API: a hand-rolled span carrying key/value metadata.

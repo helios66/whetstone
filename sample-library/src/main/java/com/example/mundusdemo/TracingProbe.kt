@@ -43,4 +43,16 @@ public class TracingProbe {
 
     /** T3#6: a traced fn that throws — exception should propagate out and produce an error slice. */
     public fun throwingTraced(): Int = error("probe-boom")
+
+    /** T3#5: a slow suspend fn designed to be cancelled mid-flight (delay() is a cancellation
+     *  point). Mundus must still CLOSE this span when the coroutine is cancelled — a leaked/open
+     *  span (negative duration) is the regression we guard against. */
+    public suspend fun cancellable(): Int {
+        var acc = 0
+        repeat(50) {
+            delay(20)
+            acc += it
+        }
+        return acc
+    }
 }

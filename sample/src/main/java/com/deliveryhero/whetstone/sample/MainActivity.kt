@@ -92,6 +92,7 @@ fun TodoHost() {
         viewModel.selectFilter(null)                             // back to All
         delay(300)
         viewModel.refreshStats()                                 // background suspend work (off main)
+        viewModel.runCancellation()                              // cancel a traced suspend fn mid-flight
         delay(300)
         viewModel.navigateTo(TodoDestination.Stats)               // stats screen (also refreshes)
         delay(500)

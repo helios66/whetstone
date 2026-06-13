@@ -28,6 +28,7 @@
 #     - Part B (0.11.1)          inline fns NOT traced (Mundus warns instead — build check);
 #                                structured-concurrency child spans (parallel.async#N nested);
 #                                exception metadata (error_type + error_message args on .exception);
+#                                cancellation: a cancelled suspend fn's span still CLOSES (no leak);
 #                                traceFlowOperators + traceLambdas OFF by default (no map#/block# spans)
 #   GRANULAR scenario (in `both`): rebuilds with -Pmundus.traceFlowOperators=true -Pmundus.traceLambdas
 #     =true and asserts the opt-in spans DO appear (flowConsumer.map#N, <fn>.block#N).
@@ -259,6 +260,12 @@ validate_partb() { # $1=trace $2=label
     "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.error_type' AND string_value GLOB '*IllegalStateException'")" 1
   assert_ge "[$l] exception metadata error_message == 'probe-boom'" \
     "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.error_message' AND string_value='probe-boom'")" 1
+  # T3#5 cancellation: a suspend fn cancelled mid-flight must still CLOSE its span — a leaked/open
+  # span shows as negative duration. The span ran, and NONE of its slices may be unclosed.
+  assert_ge "[$l] cancellation: cancellable span ran (TracingProbe.cancellable)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*TracingProbe.cancellable*'")" 1
+  assert_eq "[$l] cancellation: span CLOSES cleanly on cancel (no unclosed cancellable slice)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*TracingProbe.cancellable*' AND dur<0")" 0
   # traceFlowOperators + traceLambdas are opt-in (default OFF) — assert they produce NOTHING here
   # (the enabled state is verified in the GRANULAR scenario with both flags on).
   assert_eq "[$l] traceFlowOperators OFF by default (no flowConsumer.map# spans)" \
