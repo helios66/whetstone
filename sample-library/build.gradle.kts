@@ -48,6 +48,9 @@ dependencies {
     implementation(libs.androidxComposeMaterial)
     implementation(libs.androidxActivityCompose)
     implementation(libs.androidxLifecycleViewModelCompose)
+    // External 3rd-party libs to demo Mundus call-site tracing (traceCalleePackages) — see StatsAuditor.
+    implementation(libs.okio)
+    implementation(libs.gson)
     // Mundus runtime: provides the tracing annotations + Mundus facade the testbed sources reference,
     // and the compiler injects calls into it. Omitted when -Pmundus.present=false (stubs cover the
     // source references; with the compiler off there are no injected calls to satisfy).

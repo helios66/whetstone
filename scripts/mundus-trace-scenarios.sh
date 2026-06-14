@@ -25,6 +25,9 @@
 #     - thread attribution       scoreFor runs on a DefaultDispatcher thread, NOT main
 #     - span balance             manual statsBatch spans all closed (dur>=0); <2% unclosed overall
 #     - multi-module reach       slices from both :sample (app) and :sample-library (library)
+#     - multi-dependency         a SECOND DI dependency (StatsAuditor.audit) traced, not just one
+#     - external-lib callees     traceCalleePackages wraps calls into okio + gson; the readable
+#                                callee name survives R8 (compile-time literal, pre-obfuscation)
 #     - Part B (0.11.1)          inline fns NOT traced (Mundus warns instead — build check);
 #                                structured-concurrency child spans (parallel.async#N nested);
 #                                exception metadata (error_type + error_message args on .exception);
@@ -223,11 +226,26 @@ validate_disabled() { # $1=trace $2=label
   local t="$1" l="$2"
   local nm
   for nm in 'getMessage' 'scoreFor' 'library.TodoViewModel.' 'MainActivity.onCreate' 'MainWorker.doWork' \
-            'AutoTracedDemo.weigh' 'PartlyTracedDemo.tracedOne' 'androidx.compose'; do
+            'AutoTracedDemo.weigh' 'PartlyTracedDemo.tracedOne' 'androidx.compose' \
+            'StatsAuditor.audit' 'okio.ByteString' 'com.google.gson.Gson'; do
     assert_eq "[$l] disabled: no '$nm' slices (compiler off)" "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*$nm*'")" 0
   done
   assert_eq "[$l] disabled: no @TraceArg metadata (debug.title)" "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.title'")" 0
   assert_ge "[$l] disabled: manual beginTokenWith span SURVIVES (statsBatch)" "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*statsBatch*'")" 1
+}
+
+# Multi-dependency + external-library coverage. Asserts (1) Mundus traces a SECOND distinct Whetstone
+# DI dependency (StatsAuditor, alongside MainDependency) — not just one; and (2) traceCalleePackages
+# wraps call sites into pre-compiled 3rd-party libs (okio + gson), with the human-readable callee name
+# surviving R8 (baked at compile time before obfuscation). Run in BOTH debug and release.
+validate_deps() { # $1=trace $2=label
+  local t="$1" l="$2"
+  assert_ge "[$l] 2nd DI dependency traced (StatsAuditor.audit)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*StatsAuditor.audit'")" 1
+  assert_ge "[$l] external-lib call traced: okio (traceCalleePackages)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*okio.ByteString.Companion.encodeUtf8*'")" 1
+  assert_ge "[$l] external-lib call traced: gson (traceCalleePackages)" \
+    "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*com.google.gson.Gson.toJson*'")" 1
 }
 
 # Part B coverage (shipped in 0.11.1) — driven by the TracingProbe fixture (outside includePackages,
@@ -306,6 +324,7 @@ if [ "$WHICH" = "debug" ] || [ "$WHICH" = "both" ]; then
   validate_structure "$T" debug
   validate_autotrace "$T" debug
   validate_partb "$T" debug
+  validate_deps "$T" debug
   check_inline_warning
 fi
 
@@ -320,6 +339,7 @@ if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
   validate_structure "$T" release
   validate_autotrace "$T" release
   validate_partb "$T" release
+  validate_deps "$T" release
   if grep -q "message!" "$OUT/scenario-release.logcat.txt" 2>/dev/null; then
     pass "[release] no DI crash (App log emitted under R8 full mode)"
   else

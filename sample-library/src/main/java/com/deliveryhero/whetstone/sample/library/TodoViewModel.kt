@@ -22,6 +22,9 @@ import kotlinx.coroutines.withContext
 @ContributesViewModel
 public class TodoViewModel @Inject constructor(
     private val dependency: MainDependency,
+    // A second Whetstone-injected dependency, so the trace harness can prove Mundus captures TWO
+    // distinct DI dependencies (not just MainDependency) under R8 full mode. See StatsAuditor.
+    private val statsAuditor: StatsAuditor,
     // Whetstone-injected (was a hand-rolled `TracingFixtures()`): routes the tracing-coverage
     // fixtures + their collaborators through the DI graph instead of constructing them directly.
     private val tracingFixtures: TracingFixtures,
@@ -164,9 +167,15 @@ public class TodoViewModel @Inject constructor(
     /** Aggregate a weighted score across all todos on a background dispatcher. */
     private suspend fun computeStatsScore(): Int = withContext(Dispatchers.Default) {
         // 0.6.0 manual API: a hand-rolled span carrying key/value metadata.
+        // Exercise the SECOND injected dependency on the stats path BEFORE opening the manual span:
+        // statsAuditor.audit() is itself traced, and calling a traced fn inside the beginTokenWith
+        // metadata lambda is re-entrant (Mundus is mid-span-creation) and drops the manual span.
+        // Computing it here keeps its result feeding the metadata (so it isn't DCE'd) without nesting.
+        val auditChecksum = statsAuditor.audit("statsBatch", _todos.size)
         val token = Mundus.beginTokenWith("TodoViewModel.statsBatch") {
             put("todoCount", _todos.size.toLong())
             put("filter", filterCategoryId?.let { categoryName(it) } ?: "all")
+            put("audit", auditChecksum.toLong())
         }
         try {
             var score = 0

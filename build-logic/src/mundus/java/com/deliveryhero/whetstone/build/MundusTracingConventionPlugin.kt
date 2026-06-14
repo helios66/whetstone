@@ -29,6 +29,10 @@ class MundusTracingConventionPlugin : Plugin<Project> {
             includePackages.set(listOf("com.deliveryhero.whetstone"))
             // Trace suspend functions too (background coroutine work in the ViewModel).
             instrumentSuspendFunctions.set(true)
+            // 0.13.0: trace CALL SITES into these external/3rd-party packages (Mundus can't
+            // instrument inside their pre-compiled bytecode, but it wraps calls to them from our
+            // instrumented code). Demos that calls into okio/gson get captured. See StatsAuditor.
+            traceCalleePackages.set(listOf("okio", "com.google.gson"))
             // Instrument framework callbacks without widening includePackages.
             // 0.13.0 split the old `compose` preset into composeBodyTracing (@Composable function
             // bodies) and composeRuntimeTracing (the heavy androidx CompositionTracer). Both on for
