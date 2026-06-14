@@ -20,6 +20,11 @@ out/
 # Gradle files
 .gradle/
 build/
+# ...but NOT source packages literally named `build` — the convention plugins live in
+# `com.deliveryhero.whetstone.build`, whose directory the rule above would otherwise ignore.
+# Scoped to build-logic/src so the gradle output dir (build-logic/build/) stays ignored.
+!build-logic/src/**/build/
+!build-logic/src/**/build/**
 
 # Local configuration file (sdk path, etc)
 local.properties
