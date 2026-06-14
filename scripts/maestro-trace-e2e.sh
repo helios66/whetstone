@@ -26,13 +26,8 @@ export JAVA_HOME="${JAVA_HOME:-/Library/Java/JavaVirtualMachines/amazon-corretto
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 export PATH="$PATH:$ANDROID_HOME/platform-tools:$HOME/.maestro/bin"
 mkdir -p "$OUT"
-adb() { command adb -s "$DEVICE" "$@"; }
-FAILS=0
-pass() { printf '  \033[32mPASS\033[0m %s\n' "$1"; }
-fail() { printf '  \033[31mFAIL\033[0m %s\n' "$1"; FAILS=$((FAILS+1)); }
-q() { local tf; tf="$(mktemp)"; printf '%s\n' "$2" > "$tf"
-      local r; r="$("$TP" "$1" -q "$tf" 2>/dev/null | tail -1 | tr -d '"' || true)"; rm -f "$tf"; printf '%s' "$r"; }
-assert_ge() { if [ "${2:-0}" -ge "$3" ] 2>/dev/null; then pass "$1 ($2 >= $3)"; else fail "$1 (got '${2:-?}', need >= $3)"; fi; }
+# shared adb()/pass()/fail()/assert_ge()/assert_eq()/q() + FAILS (needs DEVICE + TP, set above)
+source "$ROOT/scripts/_trace-lib.sh"
 
 command -v maestro >/dev/null 2>&1 || { echo "ERROR: maestro not on PATH — install from https://maestro.mobile.dev"; exit 2; }
 adb get-state >/dev/null 2>&1 || { echo "ERROR: device $DEVICE not available"; exit 2; }

@@ -67,25 +67,8 @@ export PATH="$PATH:$ANDROID_HOME/platform-tools:$HOME/.maestro/bin"
 export MAESTRO_CLI_NO_ANALYTICS=1
 
 mkdir -p "$OUT"
-FAILS=0
-adb() { command adb -s "$DEVICE" "$@"; }
-
-# --- assertion helpers ----------------------------------------------------
-pass() { printf '  \033[32mPASS\033[0m %s\n' "$1"; }
-fail() { printf '  \033[31mFAIL\033[0m %s\n' "$1"; FAILS=$((FAILS+1)); }
-assert_ge() { # name value min
-  if [ "${2:-0}" -ge "$3" ] 2>/dev/null; then pass "$1 ($2 >= $3)"; else fail "$1 (got '${2:-?}', need >= $3)"; fi
-}
-assert_eq() { # name value expected
-  if [ "${2:-x}" = "$3" ]; then pass "$1 (== $3)"; else fail "$1 (got '${2:-?}', expected $3)"; fi
-}
-
-# scalar query against a trace; returns last non-header line, unquoted
-q() {
-  local tf; tf="$(mktemp)"; printf '%s\n' "$2" > "$tf"
-  local r; r="$("$TP" "$1" -q "$tf" 2>/dev/null | tail -1 | tr -d '"' || true)"
-  rm -f "$tf"; printf '%s' "$r"
-}
+# shared adb()/pass()/fail()/assert_ge()/assert_eq()/q() + FAILS (needs DEVICE + TP, set above)
+source "$ROOT/scripts/_trace-lib.sh"
 
 # --- build + drive one variant; echoes the pulled trace path --------------
 run_variant() { # $1=label  $2=apk-glob  $3...=extra gradle args
