@@ -35,7 +35,9 @@ kotlinSam = { id = "org.jetbrains.kotlin.plugin.sam.with.receiver", version.ref 
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-mundus = { id = "com.unpopulardev.mundus", version.ref = "mundus" }
+# NOTE: the Mundus compiler plugin is no longer applied via a module `plugins {}` alias — it is
+# applied (and configured) by the `com.deliveryhero.whetstone.mundus` build-logic convention plugin,
+# gated on `-Pmundus.present`. The convention compiles against `mundusGradle` (below).
 
 [libraries]
 androidGradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -75,3 +77,6 @@ material = { group = "com.google.android.material", name = "material", version.r
 mavenPublish = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "mavenPublish" }
 mundusRuntime = { module = "com.unpopulardev.mundus:mundus-runtime", version.ref = "mundus" }
 mundusComposeTracing = { module = "com.unpopulardev.mundus:mundus-compose-tracing", version.ref = "mundus" }
+# The Mundus gradle plugin itself — consumed by the build-logic convention plugin (compile + apply),
+# resolved from GitHub Packages only when `-Pmundus.present` is not false.
+mundusGradle = { module = "com.unpopulardev.mundus:mundus-gradle", version.ref = "mundus" }

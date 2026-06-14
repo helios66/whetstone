@@ -24,7 +24,11 @@ for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
 - Robolectric runtime DI assertions in the sample (CI-runnable, no emulator).
 - The `sample`/`sample-library` modules double as an auto-tracing testbed (integrated with the
   Mundus compiler plugin) with an emulator-driven Perfetto-trace acceptance suite at
-  `scripts/mundus-trace-scenarios.sh`. Dev-only — not part of the published artifacts.
+  `scripts/mundus-trace-scenarios.sh`. Dev-only — not part of the published artifacts. The Mundus
+  integration is gated behind `-Pmundus.present` (default `true`): a clone without access to the
+  private `helios66/mundus` GitHub Packages registry builds the sample with `-Pmundus.present=false`,
+  which swaps in a no-op convention plugin (`com.deliveryhero.whetstone.mundus`, in build-logic) and
+  local no-op runtime stubs — so the testbed never makes the sample un-buildable.
 
 ### Dependencies
 - AGP 8.13.0 → 8.13.2; `compileSdk` 35 → 36; `minSdk` 21 → 23.

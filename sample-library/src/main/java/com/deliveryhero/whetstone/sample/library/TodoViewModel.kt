@@ -22,6 +22,9 @@ import kotlinx.coroutines.withContext
 @ContributesViewModel
 public class TodoViewModel @Inject constructor(
     private val dependency: MainDependency,
+    // Whetstone-injected (was a hand-rolled `TracingFixtures()`): routes the tracing-coverage
+    // fixtures + their collaborators through the DI graph instead of constructing them directly.
+    private val tracingFixtures: TracingFixtures,
 ) : ScopedViewModel() {
 
     public val categories: List<Category> = listOf(
@@ -32,9 +35,6 @@ public class TodoViewModel @Inject constructor(
 
     // Precomputed O(1) lookup — avoids a linear scan per row, per recomposition.
     private val categoryNames: Map<Int, String> = categories.associate { it.id to it.name }
-
-    // All Mundus tracing-coverage fixtures live behind one object — see TracingFixtures.
-    private val tracingFixtures = TracingFixtures()
 
     // Seed a couple of todos so the app has content to render/score the moment it opens — the UI is
     // now driven entirely by the e2e test (Maestro), not by any in-app scripted flow. Seeded text

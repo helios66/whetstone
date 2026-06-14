@@ -2,6 +2,7 @@ package com.example.mundusdemo
 
 import com.unpopulardev.mundus.runtime.AutoTrace
 import com.unpopulardev.mundus.runtime.NoTrace
+import javax.inject.Inject
 import kotlinx.coroutines.delay
 // NOTE: precedence observed in Mundus 0.9.0 — class-level @NoTrace overrides a function-level
 // @AutoTrace (the annotated method is NOT traced), and Mundus emits no warning about the override.
@@ -16,7 +17,7 @@ import kotlinx.coroutines.delay
  * function, plus a [NoTrace] method that must stay untraced even inside an @AutoTrace class.
  */
 @AutoTrace
-public class AutoTracedDemo {
+public class AutoTracedDemo @Inject constructor() {
 
     /** @AutoTrace on a NON-coroutine function. */
     public fun weigh(values: List<Int>): Int {
@@ -43,7 +44,7 @@ public class AutoTracedDemo {
  * `includePackages`, so only the explicitly-annotated method must be traced — the un-annotated
  * sibling must stay untraced. This isolates per-function opt-in from class-level opt-in.
  */
-public class PartlyTracedDemo {
+public class PartlyTracedDemo @Inject constructor() {
 
     /** @AutoTrace on a single function of an otherwise-untraced class. */
     @AutoTrace
@@ -64,7 +65,7 @@ public class PartlyTracedDemo {
  * annotation wins when they conflict (function-level opt-in vs class-level opt-out).
  */
 @NoTrace
-public class ConflictDemo {
+public class ConflictDemo @Inject constructor() {
 
     /** @AutoTrace on a method of a @NoTrace class — who wins? */
     @AutoTrace

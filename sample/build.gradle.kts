@@ -4,31 +4,21 @@ plugins {
     alias(libs.plugins.kotlinCompose)
     id("com.deliveryhero.whetstone.build")
     id("io.github.helios66.whetstone")
-    // Mundus: auto-tracing Kotlin compiler plugin (version-locked to Kotlin 2.3.20).
-    alias(libs.plugins.mundus)
+    // Mundus auto-tracing convention (build-logic). Applies + configures the Mundus compiler plugin
+    // when -Pmundus.present is not false (default true); a pure no-op otherwise. Whole-app tracing
+    // config (includePackages + suspend + presets) lives in the convention, not here.
+    id("com.deliveryhero.whetstone.mundus")
 }
+
+// Whether the private Mundus artifacts are available (GitHub Packages). Default true for the owner's
+// tracing testbed; pass -Pmundus.present=false on a clone with no GHP access (the convention no-ops
+// and :sample-library compiles against local runtime stubs).
+val mundusPresent = (providers.gradleProperty("mundus.present").orNull ?: "true").toBoolean()
 
 whetstone {
     addOns {
         compose.set(true)
         workManager.set(true)
-    }
-}
-
-mundus {
-    // Trace the entire app: top-level prefix captures sample classes AND the
-    // generated Metro/Whetstone DI graph code (all under com.deliveryhero.whetstone.*).
-    includePackages.set(listOf("com.deliveryhero.whetstone"))
-    // Trace suspend functions too (background coroutine work in the ViewModel).
-    // 0.11.1 renamed traceSuspendFunctions -> instrumentSuspendFunctions.
-    instrumentSuspendFunctions.set(true)
-    // 0.4.0 presets: instrument framework callbacks without widening includePackages.
-    presets {
-        compose.set(true)       // @Composable bodies
-        lifecycle.set(true)     // Activity/Fragment onCreate/onStart/onResume/onCreateView
-        viewModel.set(true)     // androidx.lifecycle.ViewModel subclasses
-        workers.set(true)       // androidx.work.ListenableWorker.doWork
-        startupPhases.set(true) // 0.5.0: Application.onCreate / ContentProvider / androidx.startup.Initializer
     }
 }
 
@@ -80,11 +70,14 @@ dependencies {
     implementation(libs.androidxComposeUi)
     implementation(libs.material)
     implementation(libs.constraintlayout)
-    implementation(libs.mundusRuntime)
-    // NOTE: the Mundus plugin auto-adds mundus-compose-tracing (and 0.7.0 auto-installs the heavy
-    // Compose CompositionTracer) only when presets.compose AND mundus.composeTracing are both on.
-    // composeTracing defaults true; we leave debug heavy and build release with
-    // -Pmundus.composeTracing=false so the plugin drops the dep entirely (release traces stay lean).
+    // Mundus runtime: required when present because the compiler injects calls to it into the app's
+    // bytecode (the sample's own source has no Mundus symbols). Omitted when -Pmundus.present=false.
+    // The Mundus plugin auto-adds mundus-compose-tracing (and the heavy Compose CompositionTracer)
+    // only when presets.compose AND mundus.composeTracing are both on; release is built with
+    // -Pmundus.composeTracing=false so the plugin drops that dep entirely (release traces stay lean).
+    if (mundusPresent) {
+        implementation(libs.mundusRuntime)
+    }
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidxTestCore)

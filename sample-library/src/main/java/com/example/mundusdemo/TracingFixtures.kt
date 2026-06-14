@@ -1,6 +1,7 @@
 package com.example.mundusdemo
 
 import com.unpopulardev.mundus.runtime.Mundus
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -13,12 +14,17 @@ import kotlinx.coroutines.launch
  * stats score must NOT be polluted with their return values. To stop R8 from dead-code-eliminating
  * the un-traced negative-case calls (whose results would otherwise be unused), [exerciseAll] folds a
  * checksum into a Mundus span — an opaque side-effect R8 cannot drop.
+ *
+ * Whetstone-injected: the four fixture collaborators arrive via the DI graph (each is an
+ * `@Inject constructor` class), so this fixture set is itself a real consumer of the graph rather
+ * than a hand-rolled `new`. [TodoViewModel] receives this via its own injected constructor.
  */
-public class TracingFixtures {
-    private val autoTraced = AutoTracedDemo()
-    private val partlyTraced = PartlyTracedDemo()
-    private val conflictDemo = ConflictDemo()
-    private val probe = TracingProbe()
+public class TracingFixtures @Inject constructor(
+    private val autoTraced: AutoTracedDemo,
+    private val partlyTraced: PartlyTracedDemo,
+    private val conflictDemo: ConflictDemo,
+    private val probe: TracingProbe,
+) {
 
     /**
      * Exercise every annotation/probe fixture for its tracing side-effects.

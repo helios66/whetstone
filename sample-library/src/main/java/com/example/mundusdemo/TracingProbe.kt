@@ -1,6 +1,7 @@
 package com.example.mundusdemo
 
 import com.unpopulardev.mundus.runtime.AutoTrace
+import javax.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.map
  * concurrency (async children), Flow operators, lambda bodies, and exception metadata.
  */
 @AutoTrace
-public class TracingProbe {
+public class TracingProbe @Inject constructor() {
 
     /** T1: inline fn (NOT traced as of 0.9.0 — inlined into the caller). */
     public inline fun inlined(block: () -> Int): Int = block() + 1

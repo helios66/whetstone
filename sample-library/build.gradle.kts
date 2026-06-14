@@ -4,24 +4,15 @@ plugins {
     alias(libs.plugins.kotlinCompose)
     id("com.deliveryhero.whetstone.build")
     id("io.github.helios66.whetstone")
-    // Mundus auto-tracing — multi-module: trace this library module too.
-    alias(libs.plugins.mundus)
+    // Mundus auto-tracing convention (build-logic) — multi-module: traces this library too. Applies
+    // + configures the Mundus compiler plugin when -Pmundus.present is not false; no-op otherwise.
+    id("com.deliveryhero.whetstone.mundus")
 }
 
-mundus {
-    // Trace the entire app: top-level prefix captures all library classes too.
-    includePackages.set(listOf("com.deliveryhero.whetstone"))
-    // Trace suspend functions too (background coroutine work in the ViewModel).
-    // 0.11.1 renamed traceSuspendFunctions -> instrumentSuspendFunctions.
-    instrumentSuspendFunctions.set(true)
-    // 0.4.0 presets: instrument framework callbacks without widening includePackages.
-    presets {
-        compose.set(true)    // @Composable bodies
-        lifecycle.set(true)  // Activity/Fragment lifecycle callbacks
-        viewModel.set(true)  // androidx.lifecycle.ViewModel subclasses
-        workers.set(true)    // androidx.work.ListenableWorker.doWork
-    }
-}
+// Whether the private Mundus artifacts are available (GitHub Packages). Default true for the owner's
+// tracing testbed; pass -Pmundus.present=false on a clone with no GHP access — the convention no-ops
+// and the testbed sources compile against the local no-op runtime stubs under src/mundusStub/java.
+val mundusPresent = (providers.gradleProperty("mundus.present").orNull ?: "true").toBoolean()
 
 android {
     namespace = "com.deliveryhero.whetstone.sample.library"
@@ -39,6 +30,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    if (!mundusPresent) {
+        // No real mundus-runtime on the classpath — compile the testbed sources against local
+        // no-op stubs of the com.unpopulardev.mundus.runtime API instead.
+        sourceSets.getByName("main").java.srcDir("src/mundusStub/java")
+    }
 }
 
 dependencies {
@@ -51,7 +48,12 @@ dependencies {
     implementation(libs.androidxComposeMaterial)
     implementation(libs.androidxActivityCompose)
     implementation(libs.androidxLifecycleViewModelCompose)
-    implementation(libs.mundusRuntime)
+    // Mundus runtime: provides the tracing annotations + Mundus facade the testbed sources reference,
+    // and the compiler injects calls into it. Omitted when -Pmundus.present=false (stubs cover the
+    // source references; with the compiler off there are no injected calls to satisfy).
+    if (mundusPresent) {
+        implementation(libs.mundusRuntime)
+    }
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

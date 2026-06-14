@@ -105,6 +105,9 @@ run_variant() { # $1=label  $2=apk-glob  $3...=extra gradle args
   local min; case "$label" in disabled) min=1;; *) min=100;; esac
   local dest="$OUT/scenario-$label.perfetto-trace" attempt slices i f
   for attempt in 1 2 3; do
+    # Drop any host-side trace from a prior attempt: if this attempt's device-side pull finds nothing
+    # (f empty), the pull is skipped and `q "$dest"` must NOT silently re-validate the stale file.
+    rm -f "$dest" 2>/dev/null || true
     adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
     adb shell rm -rf "$TDIR" >/dev/null 2>&1 || true
     adb logcat -c >/dev/null 2>&1 || true
