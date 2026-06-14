@@ -14,7 +14,7 @@
 #     - manual span via beginTokenWith                    (statsBatch slices present)
 #     - @TraceArg captured arg values                     (debug.title / debug.todo metadata)
 #     - beginTokenWith typed put() columns                (debug.todoCount int, debug.filter string)
-#   RELEASE (-Pmundus.composeTracing=false, R8 full mode):
+#   RELEASE (-Pmundus.compose.tracing=false, R8 full mode):
 #     - heavy tracer is GONE                              (androidx.compose events == 0)
 #     - everything else still survives R8 full mode       (DI + suspend + manual span + metadata)
 #     - no DI crash                                       ("App: ... message!" in logcat)
@@ -40,7 +40,7 @@
 #     heavy. Paired with the lean flagged release, this proves the flag (not R8 over-stripping)
 #     causes the lean result — guarding against a false-lean and the 0.6.0 auto-install regression.
 #
-# Negative control (also run in `both`): a build with -Pmundus.enabled=false -Pmundus.composeTracing
+# Negative control (also run in `both`): a build with -Pmundus.enabled=false -Pmundus.compose.tracing
 #   =false. EVERY compiler-injected slice must vanish (proving the positive scenarios' slices are
 #   genuinely Mundus-authored), while the hand-written beginTokenWith span survives and the app still
 #   runs. Requires the enabled=false fix (Mundus >= 0.10.1); it was a no-op in 0.9.0.
@@ -58,7 +58,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 DEVICE="${DEVICE:-emulator-5556}"
 PKG="com.deliveryhero.whetstone.sample"
-TDIR="/storage/emulated/0/Android/data/$PKG/files/mundus-traces"
+# Mundus 0.13.0 moved its trace output from the app-private external files dir
+# (Android/data/$PKG/files/mundus-traces) to the shared media dir below. The runtime logs the
+# active path at startup: "traces in /storage/emulated/0/Android/media/$PKG/mundus-traces".
+TDIR="/storage/emulated/0/Android/media/$PKG/mundus-traces"
 TP="$ROOT/trace_processor"
 OUT="$HOME/AndroidStudioProjects/mundus-traces"
 COMPOSE_HEAVY_MIN="${COMPOSE_HEAVY_MIN:-500}"   # debug must exceed this many compose events
@@ -212,7 +215,7 @@ validate_autotrace() { # $1=trace $2=label
     "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*ConflictDemo.contested*'")" 0
 }
 
-# Negative control — built with -Pmundus.enabled=false -Pmundus.composeTracing=false. EVERY
+# Negative control — built with -Pmundus.enabled=false -Pmundus.compose.tracing=false. EVERY
 # compiler-injected slice must vanish (this is what proves the positive scenarios' slices are
 # genuinely Mundus-authored, not ambient), while the hand-written runtime API (beginTokenWith)
 # survives — it doesn't go through the compiler. Requires the enabled=false fix (Mundus >= 0.10.1).
@@ -308,7 +311,7 @@ fi
 
 if [ "$WHICH" = "release" ] || [ "$WHICH" = "both" ]; then
   echo "--- RELEASE scenario (R8 full mode, composeTracing OFF) ---"
-  T="$(run_variant release 'sample/build/outputs/apk/release/*.apk' -Pmundus.composeTracing=false)"
+  T="$(run_variant release 'sample/build/outputs/apk/release/*.apk' -Pmundus.compose.tracing=false)"
   CE="$(q "$T" "SELECT COUNT(*) FROM slice WHERE name GLOB '*androidx.compose*'")"
   assert_eq "[release] heavy compose tracing dropped" "$CE" "0"
   validate_common "$T" release
@@ -326,7 +329,7 @@ fi
 
 if [ "$WHICH" = "both" ] || [ "$WHICH" = "regression" ]; then
   echo "--- REGRESSION GUARD: composeTracing causality (release WITHOUT the flag must be heavy) ---"
-  # Builds release with R8 full mode but does NOT pass -Pmundus.composeTracing=false, so the
+  # Builds release with R8 full mode but does NOT pass -Pmundus.compose.tracing=false, so the
   # compose-tracing dep stays and the heavy CompositionTracer should be present. Paired with the
   # main RELEASE scenario (flag on -> 0), this proves the lean release is CAUSED by the flag and
   # not by R8 silently stripping tracing (a false-lean that would make the lean test pass for the
@@ -342,7 +345,7 @@ if [ "$WHICH" = "both" ] || [ "$WHICH" = "disabled" ]; then
   # authored (not ambient). With the compiler off, every compiler-injected slice must vanish, while
   # the hand-written runtime API (beginTokenWith) still fires. Requires the enabled=false fix
   # (Mundus >= 0.10.1); on 0.9.0 this scenario fails by design (the flag was a no-op).
-  T="$(run_variant disabled 'sample/build/outputs/apk/debug/*.apk' -Pmundus.enabled=false -Pmundus.composeTracing=false)"
+  T="$(run_variant disabled 'sample/build/outputs/apk/debug/*.apk' -Pmundus.enabled=false -Pmundus.compose.tracing=false)"
   validate_disabled "$T" disabled
   if grep -q "message!" "$OUT/scenario-disabled.logcat.txt" 2>/dev/null; then
     pass "[disabled] app still runs with tracing off (App DI log emitted)"
@@ -368,7 +371,7 @@ if [ "$WHICH" = "e2e" ]; then
   # A single deterministic user journey on a real release build, with the heavy androidx
   # CompositionTracer off but flow/lambda tracing on — the cleanest trace to actually read.
   T="$(run_variant release-e2e 'sample/build/outputs/apk/release/*.apk' \
-        -Pmundus.composeTracing=false -Pmundus.traceFlowOperators=true -Pmundus.traceLambdas=true)"
+        -Pmundus.compose.tracing=false -Pmundus.traceFlowOperators=true -Pmundus.traceLambdas=true)"
   validate_e2e "$T"
   REVIEW="$OUT/trace-e2e-release.perfetto-trace"; cp "$T" "$REVIEW"
   echo "  [e2e] review trace -> $REVIEW (open in https://ui.perfetto.dev)"

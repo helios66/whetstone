@@ -30,8 +30,13 @@ class MundusTracingConventionPlugin : Plugin<Project> {
             // Trace suspend functions too (background coroutine work in the ViewModel).
             instrumentSuspendFunctions.set(true)
             // Instrument framework callbacks without widening includePackages.
+            // 0.13.0 split the old `compose` preset into composeBodyTracing (@Composable function
+            // bodies) and composeRuntimeTracing (the heavy androidx CompositionTracer). Both on for
+            // debug; release/disabled/e2e drop the heavy one via -Pmundus.compose.tracing=false,
+            // which overrides composeRuntimeTracing (the property wins over the preset).
             presets {
-                compose.set(true)       // @Composable bodies
+                composeBodyTracing.set(true)    // @Composable bodies
+                composeRuntimeTracing.set(true) // heavy androidx CompositionTracer (prop-overridable)
                 lifecycle.set(true)     // Activity/Fragment onCreate/onStart/onResume/onCreateView
                 viewModel.set(true)     // androidx.lifecycle.ViewModel subclasses
                 workers.set(true)       // androidx.work.ListenableWorker.doWork
