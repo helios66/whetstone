@@ -5,10 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.deliveryhero.whetstone.viewmodel.ContributesViewModel
-import com.example.mundusdemo.AutoTracedDemo
-import com.example.mundusdemo.ConflictDemo
-import com.example.mundusdemo.PartlyTracedDemo
-import com.example.mundusdemo.TracingProbe
+import com.example.mundusdemo.TracingFixtures
 import com.unpopulardev.mundus.runtime.Mundus
 import com.unpopulardev.mundus.runtime.TraceArg
 import javax.inject.Inject
@@ -36,11 +33,8 @@ public class TodoViewModel @Inject constructor(
     // Precomputed O(1) lookup — avoids a linear scan per row, per recomposition.
     private val categoryNames: Map<Int, String> = categories.associate { it.id to it.name }
 
-    // @AutoTrace coverage fixtures (live outside includePackages; traced only via the annotation).
-    private val autoTraced = AutoTracedDemo()
-    private val partlyTraced = PartlyTracedDemo()
-    private val conflictDemo = ConflictDemo()
-    private val probe = TracingProbe()
+    // All Mundus tracing-coverage fixtures live behind one object — see TracingFixtures.
+    private val tracingFixtures = TracingFixtures()
 
     // Seed a couple of todos so the app has content to render/score the moment it opens — the UI is
     // now driven entirely by the e2e test (Maestro), not by any in-app scripted flow. Seeded text
@@ -164,19 +158,7 @@ public class TodoViewModel @Inject constructor(
         }
         // Also exercise the cancellation path on every stats refresh (the StatsScreen triggers this),
         // so the e2e trace covers it without any in-app scripted flow.
-        runCancellation()
-    }
-
-    /**
-     * Launch the slow [TracingProbe.cancellable] and cancel it mid-flight. Tests that Mundus closes
-     * a traced suspend fn's span cleanly on cancellation (no leaked / negative-duration slice).
-     */
-    private fun runCancellation() {
-        val job = viewModelScope.launch { probe.cancellable() }
-        viewModelScope.launch {
-            delay(60)
-            job.cancel()
-        }
+        tracingFixtures.startAndCancel(viewModelScope)
     }
 
     /** Aggregate a weighted score across all todos on a background dispatcher. */
@@ -187,32 +169,15 @@ public class TodoViewModel @Inject constructor(
             put("filter", filterCategoryId?.let { categoryName(it) } ?: "all")
         }
         try {
-            var acc = 0
+            var score = 0
             for (todo in _todos.toList()) {
-                acc += scoreFor(todo)
+                score += scoreFor(todo)
             }
-            // Exercise the @AutoTrace fixture (a class OUTSIDE includePackages): a plain method,
-            // a suspend method, and a @NoTrace method that must stay untraced. Runs every refresh
-            // regardless of the todo count, so the harness can assert the annotation-driven path.
-            val ids = _todos.map { it.id }
-            acc += autoTraced.weigh(ids)
-            acc += autoTraced.weighAsync(ids)
-            autoTraced.untraced(ids)
-            // Function-level permutations: @AutoTrace on one method of an un-annotated class
-            // (only tracedOne should trace, plainTwo must not), and @NoTrace on an in-package method.
-            acc += partlyTraced.tracedOne(ids)
-            acc += partlyTraced.plainTwo(ids)
-            acc += dependency.silentHelper(ids.size)
-            // Precedence: @NoTrace class with an @AutoTrace method — observed that @NoTrace wins.
-            acc += conflictDemo.contested(ids)
-            acc += conflictDemo.alsoSilent(ids)
-            // Part B probe: inline / higher-order(lambda) / Flow / parallel-async / throwing fn.
-            acc += probe.inlined { ids.size }
-            acc += probe.higherOrder { var x = 0; for (i in 0..ids.size) x += i; x }
-            acc += probe.flowConsumer()
-            acc += probe.parallel()
-            try { acc += probe.throwingTraced() } catch (e: IllegalStateException) { acc += 1 }
-            acc
+            // Exercise the Mundus tracing-coverage fixtures (out-of-package @AutoTrace/@NoTrace,
+            // precedence, the Part B probe). silentHelper tests @NoTrace on an in-includePackages
+            // method; its result is threaded through so neither it nor the negative cases are DCE'd.
+            tracingFixtures.exerciseAll(_todos.map { it.id }, dependency.silentHelper(_todos.size))
+            score
         } finally {
             Mundus.endToken(token)
         }
