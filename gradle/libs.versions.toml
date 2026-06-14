@@ -40,6 +40,7 @@ mundus = { id = "com.unpopulardev.mundus", version.ref = "mundus" }
 [libraries]
 androidGradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 androidxActivity = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
+androidxActivityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
 androidxAppCompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppCompat" }
 androidxComposeMaterial = { module = "androidx.compose.material:material", version.ref = "androidxCompose" }
 androidxComposeRuntime = { module = "androidx.compose.runtime:runtime", version.ref = "androidxCompose" }

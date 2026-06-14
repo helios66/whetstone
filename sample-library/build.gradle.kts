@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidxComposeRuntime)
     implementation(libs.androidxComposeUi)
     implementation(libs.androidxComposeMaterial)
+    implementation(libs.androidxActivityCompose)
     implementation(libs.androidxLifecycleViewModelCompose)
     implementation(libs.mundusRuntime)
     testImplementation(libs.junit)

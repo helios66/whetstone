@@ -42,7 +42,13 @@ public class TodoViewModel @Inject constructor(
     private val conflictDemo = ConflictDemo()
     private val probe = TracingProbe()
 
-    private val _todos = mutableStateListOf<Todo>()
+    // Seed a couple of todos so the app has content to render/score the moment it opens — the UI is
+    // now driven entirely by the e2e test (Maestro), not by any in-app scripted flow. Seeded text
+    // goes through getMessage() so the @TraceArg path is exercised at startup.
+    private val _todos = mutableStateListOf(
+        Todo(id = 0, text = dependency.getMessage("Email the client"), categoryId = 0),
+        Todo(id = 1, text = dependency.getMessage("Buy groceries"), categoryId = 2),
+    )
     public val todos: List<Todo> get() = _todos
 
     /** Result of the last background stats computation. */
@@ -75,7 +81,7 @@ public class TodoViewModel @Inject constructor(
     public var draftCategoryId: Int by mutableStateOf(0)
         private set
 
-    private var nextId = 0
+    private var nextId = 2
 
     public val visibleTodos: List<Todo>
         get() = filterCategoryId?.let { id -> _todos.filter { it.categoryId == id } } ?: _todos
@@ -156,13 +162,16 @@ public class TodoViewModel @Inject constructor(
             statsScore = score
             statsLoading = false
         }
+        // Also exercise the cancellation path on every stats refresh (the StatsScreen triggers this),
+        // so the e2e trace covers it without any in-app scripted flow.
+        runCancellation()
     }
 
     /**
      * Launch the slow [TracingProbe.cancellable] and cancel it mid-flight. Tests that Mundus closes
      * a traced suspend fn's span cleanly on cancellation (no leaked / negative-duration slice).
      */
-    public fun runCancellation() {
+    private fun runCancellation() {
         val job = viewModelScope.launch { probe.cancellable() }
         viewModelScope.launch {
             delay(60)

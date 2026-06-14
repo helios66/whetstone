@@ -1,5 +1,6 @@
 package com.deliveryhero.whetstone.sample.library
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,9 @@ import androidx.compose.ui.Modifier
  */
 @Composable
 public fun TodoRoot(viewModel: TodoViewModel) {
+    // System back pops the hand-rolled nav stack (so the e2e test's `back` returns to the list
+    // instead of exiting the activity).
+    BackHandler(enabled = viewModel.canNavigateBack) { viewModel.navigateBack() }
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             val destination = viewModel.destination

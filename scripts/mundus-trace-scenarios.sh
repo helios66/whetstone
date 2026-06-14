@@ -63,7 +63,8 @@ WHICH="${1:-both}"
 
 export JAVA_HOME="${JAVA_HOME:-/Library/Java/JavaVirtualMachines/amazon-corretto-21.jdk/Contents/Home}"
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
-export PATH="$PATH:$ANDROID_HOME/platform-tools"
+export PATH="$PATH:$ANDROID_HOME/platform-tools:$HOME/.maestro/bin"
+export MAESTRO_CLI_NO_ANALYTICS=1
 
 mkdir -p "$OUT"
 FAILS=0
@@ -121,21 +122,14 @@ run_variant() { # $1=label  $2=apk-glob  $3...=extra gradle args
     adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
     adb shell rm -rf "$TDIR" >/dev/null 2>&1 || true
     adb logcat -c >/dev/null 2>&1 || true
-    echo ">>> [$label] driving UI flow (attempt $attempt)" >&2
-    adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
-    sleep 4
-    adb shell input tap 540 1600 >/dev/null 2>&1 || true
-    adb shell input text "Scenario" >/dev/null 2>&1 || true
-    for i in 1 2 3 4 5; do
-      adb shell input tap 540 1000 >/dev/null 2>&1 || true
-      adb shell input swipe 540 1400 540 700 250 >/dev/null 2>&1 || true
-    done
-    adb shell monkey -p "$PKG" --throttle 90 --pct-touch 80 --pct-syskeys 0 -v 140 >/dev/null 2>&1 || true
-    sleep 2
+    echo ">>> [$label] driving via Maestro (attempt $attempt)" >&2
+    # Deterministic UI journey (.maestro/todo-e2e.yaml): launches, opens Stats (fires refreshStats
+    # -> computeStatsScore: scoreFor + manual span + all @AutoTrace/@NoTrace fixtures + probe +
+    # cancellation), opens a Detail screen, then backgrounds the app (Home) so Mundus flushes.
+    maestro --device "$DEVICE" test "$ROOT/.maestro/todo-e2e.yaml" >&2 || true
     adb logcat -d -s App:D > "$OUT/scenario-$label.logcat.txt" 2>/dev/null || true
-    # Clean capture: background (flush) -> settle past the 500ms interval -> force-stop ->
-    # let the OS finish writing the file -> pull.
-    adb shell input keyevent KEYCODE_HOME >/dev/null 2>&1 || true
+    # Clean capture: the flow already backgrounded the app (flush); settle past the 500ms interval,
+    # force-stop, let the OS finish writing the file, then pull.
     sleep 2
     adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
     sleep 3
@@ -286,6 +280,7 @@ check_inline_warning() {
 
 echo "=== Mundus trace scenarios on $DEVICE (mundus $(grep -m1 '^mundus' gradle/libs.versions.toml | cut -d'"' -f2)) ==="
 adb get-state >/dev/null 2>&1 || { echo "ERROR: device $DEVICE not available"; exit 2; }
+command -v maestro >/dev/null 2>&1 || { echo "ERROR: maestro not on PATH — install from https://maestro.mobile.dev"; exit 2; }
 
 if [ "$WHICH" = "debug" ] || [ "$WHICH" = "both" ]; then
   echo "--- DEBUG scenario ---"
