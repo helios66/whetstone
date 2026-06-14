@@ -31,7 +31,8 @@ gradlePlugin {
 
 kotlin.compilerOptions {
     optIn.add("kotlin.ExperimentalStdlibApi")
-    freeCompilerArgs.add("-Xjvm-default=all")
+    // -Xjvm-default=all deprecated in Kotlin 2.2 → typed jvmDefault (NO_COMPATIBILITY == old `all`).
+    jvmDefault.set(org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.NO_COMPATIBILITY)
 }
 
 dependencies {

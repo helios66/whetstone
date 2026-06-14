@@ -33,7 +33,10 @@ class BuildPlugin : Plugin<Project> {
 
     private fun Project.configureKotlin() = configure<KotlinProjectExtension> {
         val config: KotlinJvmCompilerOptions.() -> Unit = {
-            freeCompilerArgs.addAll("-Xjvm-default=all", "-Xassertions=jvm")
+            // -Xjvm-default=all was deprecated in Kotlin 2.2; the stable typed option is jvmDefault.
+            // NO_COMPATIBILITY is the exact equivalent of the old `all` (default methods, no DefaultImpls).
+            jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
+            freeCompilerArgs.add("-Xassertions=jvm")
             jvmTarget.set(JvmTarget.JVM_11)
         }
         when (this) {
