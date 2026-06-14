@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # _trace-lib.sh — shared helpers for the Mundus Perfetto-trace scripts
-# (mundus-trace-scenarios.sh + maestro-trace-e2e.sh).
+# (sourced by mundus-trace-scenarios.sh).
 #
 # Source AFTER setting two variables:
 #   DEVICE  — the adb serial (e.g. emulator-5556)

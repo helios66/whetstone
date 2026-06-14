@@ -45,7 +45,10 @@
 #   genuinely Mundus-authored), while the hand-written beginTokenWith span survives and the app still
 #   runs. Requires the enabled=false fix (Mundus >= 0.10.1); it was a no-op in 0.9.0.
 #
-# Usage:   scripts/mundus-trace-scenarios.sh [debug|release|both]   (default: both)
+# Usage:   scripts/mundus-trace-scenarios.sh [MODE]   (default: both)
+#   both      — full gauntlet (debug + release + regression guard + disabled + granular) = CI gate
+#   debug | release | disabled | granular | regression — a single gauntlet scenario
+#   e2e       — one realistic release journey -> a reviewable trace (trace-e2e-release.perfetto-trace)
 # Env:     DEVICE (default emulator-5556), JAVA_HOME, ANDROID_HOME
 #
 set -euo pipefail
@@ -261,6 +264,22 @@ check_inline_warning() {
   fi
 }
 
+# Focused validation for the `e2e` mode (a single realistic release journey with ALL opt-in tracing
+# on). Asserts the trace is review-worthy: DI + suspend + manual span + client Compose + ViewModel +
+# @TraceArg are present, the opt-in flow/lambda spans appear (flags on), and it's lean (no androidx).
+validate_e2e() { # $1=trace
+  local t="$1"
+  assert_ge "[e2e] Whetstone DI ran (getMessage)"          "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*getMessage*'")"                1
+  assert_ge "[e2e] background suspend work (scoreFor)"      "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*scoreFor*'")"                  1
+  assert_ge "[e2e] manual span (statsBatch)"               "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*statsBatch*'")"                1
+  assert_ge "[e2e] client Compose bodies (Screen/Row)"     "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*whetstone*Screen*' OR name GLOB '*whetstone*Row*'")" 1
+  assert_ge "[e2e] ViewModel methods (preset)"             "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*library.TodoViewModel.*'")"    1
+  assert_ge "[e2e] @TraceArg metadata (debug.title)"       "$(q "$t" "SELECT COUNT(*) FROM args WHERE flat_key='debug.title'")"                   1
+  assert_ge "[e2e] Flow operator spans (flags on)"         "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*flowConsumer.map#*'")"         1
+  assert_ge "[e2e] lambda-body spans (flags on)"           "$(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*.block#*'")"                   1
+  echo "  [e2e] androidx.compose events (lean): $(q "$t" "SELECT COUNT(*) FROM slice WHERE name GLOB '*androidx.compose*'")"
+}
+
 echo "=== Mundus trace scenarios on $DEVICE (mundus $(grep -m1 '^mundus' gradle/libs.versions.toml | cut -d'"' -f2)) ==="
 adb get-state >/dev/null 2>&1 || { echo "ERROR: device $DEVICE not available"; exit 2; }
 command -v maestro >/dev/null 2>&1 || { echo "ERROR: maestro not on PATH — install from https://maestro.mobile.dev"; exit 2; }
@@ -339,6 +358,17 @@ if [ "$WHICH" = "both" ] || [ "$WHICH" = "granular" ]; then
     "$(q "$T" "SELECT COUNT(*) FROM slice WHERE name GLOB '*flowConsumer.map#*'")" 1
   assert_ge "[granular] traceLambdas ON -> lambda-body spans (.block#)" \
     "$(q "$T" "SELECT COUNT(*) FROM slice WHERE name GLOB '*.block#*'")" 1
+fi
+
+if [ "$WHICH" = "e2e" ]; then
+  echo "--- E2E: realistic release journey -> reviewable trace (all opt-in tracing on) ---"
+  # A single deterministic user journey on a real release build, with the heavy androidx
+  # CompositionTracer off but flow/lambda tracing on — the cleanest trace to actually read.
+  T="$(run_variant release-e2e 'sample/build/outputs/apk/release/*.apk' \
+        -Pmundus.composeTracing=false -Pmundus.traceFlowOperators=true -Pmundus.traceLambdas=true)"
+  validate_e2e "$T"
+  REVIEW="$OUT/trace-e2e-release.perfetto-trace"; cp "$T" "$REVIEW"
+  echo "  [e2e] review trace -> $REVIEW (open in https://ui.perfetto.dev)"
 fi
 
 echo "==="

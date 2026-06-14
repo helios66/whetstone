@@ -9,8 +9,8 @@
 #   - open a todo's Detail screen (detail composables)
 #   - background the app so Mundus flushes its streaming trace before the runner pulls it
 #
-# Run via scripts/maestro-trace-e2e.sh (e2e) — and the gauntlet (mundus-trace-scenarios.sh) drives
-# each build variant with this same flow.
+# Driven by scripts/mundus-trace-scenarios.sh — every mode uses this one flow (the `e2e` mode
+# produces a reviewable release trace; `both` runs the full gauntlet across build variants).
 appId: com.deliveryhero.whetstone.sample
 ---
 - launchApp:
