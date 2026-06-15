@@ -26,6 +26,9 @@ build/
 !build-logic/src/**/build/
 !build-logic/src/**/build/**
 
+# Generated upstream-port patch (build artifact, regenerated on demand)
+/whetstone-modernization.patch
+
 # Local configuration file (sdk path, etc)
 local.properties
 
