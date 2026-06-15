@@ -86,6 +86,11 @@ public class WhetstonePlugin : Plugin<Project> {
      * (`@Inject`, `@Singleton`, `@Qualifier`, …). Metro ignores those by default, so enable the
      * javax interop mode on the `metro` extension. Done reflectively because the Metro Gradle
      * plugin is only on this plugin's runtime classpath (not its compile classpath).
+     *
+     * NOTE: Whetstone's Anvil-compatible `injector.*` contribution annotations are NOT handled via
+     * Metro's annotation interop — that path doesn't emit cross-module contribution hints, so a
+     * library-module contribution wouldn't merge into the app graph. They are instead translated to
+     * native Metro `@ContributesTo` modules by the `whetstone-compiler` KSP processor, which does.
      */
     private fun Project.enableMetroJavaxInterop() {
         val metro = extensions.getByName("metro")

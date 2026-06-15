@@ -182,7 +182,24 @@ public final class com/deliveryhero/whetstone/fragment/MultibindingFragmentFacto
 	public final fun newInstance (Lcom/deliveryhero/whetstone/fragment/FragmentComponent$Factory;)Lcom/deliveryhero/whetstone/fragment/MultibindingFragmentFactory;
 }
 
+public abstract interface annotation class com/deliveryhero/whetstone/injector/ContributesBinding : java/lang/annotation/Annotation {
+	public abstract fun boundType ()Ljava/lang/Class;
+	public abstract fun replaces ()[Ljava/lang/Class;
+	public abstract fun scope ()Ljava/lang/Class;
+}
+
 public abstract interface annotation class com/deliveryhero/whetstone/injector/ContributesInjector : java/lang/annotation/Annotation {
+	public abstract fun scope ()Ljava/lang/Class;
+}
+
+public abstract interface annotation class com/deliveryhero/whetstone/injector/ContributesMultibinding : java/lang/annotation/Annotation {
+	public abstract fun boundType ()Ljava/lang/Class;
+	public abstract fun replaces ()[Ljava/lang/Class;
+	public abstract fun scope ()Ljava/lang/Class;
+}
+
+public abstract interface annotation class com/deliveryhero/whetstone/injector/ContributesTo : java/lang/annotation/Annotation {
+	public abstract fun replaces ()[Ljava/lang/Class;
 	public abstract fun scope ()Ljava/lang/Class;
 }
 

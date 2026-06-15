@@ -14,6 +14,14 @@ consumer-facing annotation and `Whetstone.*` runtime APIs are source-compatible.
 for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
 
 ### Added
+- **Anvil-compatible contribution annotations** under `com.deliveryhero.whetstone.injector`:
+  `@ContributesTo(scope, replaces)`, `@ContributesBinding(scope, boundType, replaces)`, and
+  `@ContributesMultibinding(scope, boundType, replaces)`. The `whetstone-compiler` KSP processor
+  translates each into a native Metro `@ContributesTo` module (`<Class>_WhetstoneContribution`), so
+  they merge across modules. `@ContributesMultibinding` becomes a set binding, or a map binding when
+  the class carries a map-key annotation (any annotation meta-annotated with Metro/Dagger `@MapKey`).
+  Eases migration off Anvil — keep the call sites, swap the import. (Metro's annotation interop was
+  evaluated and rejected: it emits no cross-module contribution hints.)
 - **Dependency-graph visualization.** The Gradle plugin contributes a `whetstoneDepGraph` task
   that renders the merged DI graph (scopes + contributions) as a Mermaid diagram (`.md`/`.mmd`/
   `.html`). Per-module fragments are emitted by the KSP processor and aggregated whole-app across

@@ -32,6 +32,20 @@ class WhetstoneSymbolProcessorTest {
             package com.deliveryhero.whetstone.injector
             import kotlin.reflect.KClass
             annotation class ContributesInjector(val scope: KClass<*>)
+            @Target(AnnotationTarget.CLASS)
+            annotation class ContributesTo(val scope: KClass<*>, val replaces: Array<KClass<*>> = [])
+            @Target(AnnotationTarget.CLASS)
+            annotation class ContributesBinding(
+                val scope: KClass<*>,
+                val boundType: KClass<*> = Unit::class,
+                val replaces: Array<KClass<*>> = [],
+            )
+            @Target(AnnotationTarget.CLASS)
+            annotation class ContributesMultibinding(
+                val scope: KClass<*>,
+                val boundType: KClass<*> = Unit::class,
+                val replaces: Array<KClass<*>> = [],
+            )
             """.trimIndent(),
         ),
         SourceFile.kotlin(
@@ -251,6 +265,133 @@ class WhetstoneSymbolProcessorTest {
         )
         // But the root graph is still generated.
         assertTrue(generated.containsKey("GeneratedApplicationComponent.kt"), generated.keys.toString())
+    }
+
+    @Test
+    fun `injector ContributesBinding generates a Binds module bound to boundType`() {
+        val generated = compile(
+            SourceFile.kotlin(
+                "Binding.kt",
+                """
+                package example
+                import com.deliveryhero.whetstone.injector.ContributesBinding
+                import test.AScope
+                interface Api
+                @ContributesBinding(AScope::class, boundType = Api::class)
+                class RealApi : Api
+                """.trimIndent(),
+            ),
+        )
+        val module = generated.getValue("RealApi_WhetstoneContribution.kt")
+        assertTrue("@ContributesTo(AScope::class)" in module, module)
+        assertTrue("@Binds" in module, module)
+        assertTrue("val RealApi.bindRealApi: Api" in module, module)
+    }
+
+    @Test
+    fun `injector ContributesBinding infers boundType from the single supertype`() {
+        val generated = compile(
+            SourceFile.kotlin(
+                "Inferred.kt",
+                """
+                package example
+                import com.deliveryhero.whetstone.injector.ContributesBinding
+                import test.AScope
+                interface Greeter
+                @ContributesBinding(AScope::class)
+                class RealGreeter : Greeter
+                """.trimIndent(),
+            ),
+        )
+        val module = generated.getValue("RealGreeter_WhetstoneContribution.kt")
+        assertTrue("val RealGreeter.bindRealGreeter: Greeter" in module, module)
+    }
+
+    @Test
+    fun `injector ContributesBinding replaces maps to the replaced class generated module`() {
+        val generated = compile(
+            SourceFile.kotlin(
+                "Replaces.kt",
+                """
+                package example
+                import com.deliveryhero.whetstone.injector.ContributesBinding
+                import test.AScope
+                interface Api
+                @ContributesBinding(AScope::class, boundType = Api::class)
+                class DefaultApi : Api
+                @ContributesBinding(AScope::class, boundType = Api::class, replaces = [DefaultApi::class])
+                class FakeApi : Api
+                """.trimIndent(),
+            ),
+        )
+        val module = generated.getValue("FakeApi_WhetstoneContribution.kt")
+        assertTrue("replaces = [DefaultApi_WhetstoneContribution::class]" in module, module)
+    }
+
+    @Test
+    fun `injector ContributesMultibinding without a map-key generates an IntoSet binding`() {
+        val generated = compile(
+            SourceFile.kotlin(
+                "SetElement.kt",
+                """
+                package example
+                import com.deliveryhero.whetstone.injector.ContributesMultibinding
+                import test.AScope
+                interface Interceptor
+                @ContributesMultibinding(AScope::class)
+                class LoggingInterceptor : Interceptor
+                """.trimIndent(),
+            ),
+        )
+        val module = generated.getValue("LoggingInterceptor_WhetstoneContribution.kt")
+        assertTrue("@IntoSet" in module, module)
+        assertTrue("@IntoMap" !in module, module)
+        assertTrue("val LoggingInterceptor.bindLoggingInterceptor: Interceptor" in module, module)
+    }
+
+    @Test
+    fun `injector ContributesMultibinding with a custom map-key generates an IntoMap binding carrying the key`() {
+        val generated = compile(
+            SourceFile.kotlin(
+                "MapElement.kt",
+                """
+                package example
+                import com.deliveryhero.whetstone.injector.ContributesMultibinding
+                import dev.zacsweers.metro.MapKey
+                import test.AScope
+                @MapKey
+                annotation class DestinationKey(val value: String)
+                interface Destination
+                @ContributesMultibinding(AScope::class)
+                @DestinationKey("home")
+                class HomeDestination : Destination
+                """.trimIndent(),
+            ),
+        )
+        val module = generated.getValue("HomeDestination_WhetstoneContribution.kt")
+        assertTrue("@IntoMap" in module, module)
+        assertTrue("@IntoSet" !in module, module)
+        assertTrue("DestinationKey" in module, module)
+        assertTrue("val HomeDestination.bindHomeDestination: Destination" in module, module)
+    }
+
+    @Test
+    fun `injector ContributesTo aggregates the annotated interface into the scope`() {
+        val generated = compile(
+            SourceFile.kotlin(
+                "Aggregating.kt",
+                """
+                package example
+                import com.deliveryhero.whetstone.injector.ContributesTo
+                import test.AScope
+                @ContributesTo(AScope::class)
+                interface FeatureAccessors
+                """.trimIndent(),
+            ),
+        )
+        val module = generated.getValue("FeatureAccessors_WhetstoneContribution.kt")
+        assertTrue("@ContributesTo(AScope::class)" in module, module)
+        assertTrue("interface FeatureAccessors_WhetstoneContribution : FeatureAccessors" in module, module)
     }
 
     @Test

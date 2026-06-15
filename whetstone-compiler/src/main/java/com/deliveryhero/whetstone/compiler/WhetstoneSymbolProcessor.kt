@@ -24,6 +24,8 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.STAR
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.joinToCode
+import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
 
@@ -132,7 +134,84 @@ internal class WhetstoneSymbolProcessor(
 
         if (bindings.isNotEmpty()) writeModules(clazz, target, bindings)
         if (generateAppGraph) generateApplicationGraph(clazz)
+
+        processInjectorContributions(clazz, target)
     }
+
+    /**
+     * Translates the Anvil-compatible `injector.*` contribution annotations into native Metro
+     * `@ContributesTo` modules (which DO emit cross-module hints, unlike Metro's annotation interop).
+     * One `<Class>_WhetstoneContribution` file per annotated class:
+     *
+     * - `@ContributesTo(scope, replaces)` on an interface M -> `@ContributesTo interface …Contribution : M`
+     *   (interface aggregation — pulls M's `@Binds`/`@Provides`/accessors into the scope).
+     * - `@ContributesBinding(scope, boundType, replaces)` -> a `@Binds val Impl.bind: BoundType`.
+     * - `@ContributesMultibinding(scope, boundType, replaces)` -> `@Binds @IntoSet` (set) or, when the
+     *   class carries a map-key annotation, `@Binds @IntoMap @<MapKey>` (map) — Anvil convention.
+     *
+     * `replaces = [X::class]` is mapped to X's generated `…_WhetstoneContribution` module, so swapping
+     * a production binding/module for a test/fake one works exactly as in Anvil.
+     */
+    private fun processInjectorContributions(clazz: KSClassDeclaration, target: ClassName) {
+        for (annotation in clazz.annotations) {
+            val fqName = annotation.annotationType.resolve().declaration.qualifiedName?.asString() ?: continue
+            val scope = annotation.classArgument(NAME_SCOPE) ?: continue
+            val replaces = annotation.classListArgument(NAME_REPLACES).map { it.contributionModule() }
+
+            val contribution = when (fqName) {
+                CONTRIBUTES_TO_FQ ->
+                    TypeSpec.interfaceBuilder(target.contributionName())
+                        .addSuperinterface(target)
+                        .addAnnotation(contributesTo(scope, replaces))
+                        .build()
+
+                CONTRIBUTES_BINDING_FQ ->
+                    bindingModule(clazz, target, scope, replaces, multibinding = false)
+
+                CONTRIBUTES_MULTIBINDING_FQ ->
+                    bindingModule(clazz, target, scope, replaces, multibinding = true)
+
+                else -> continue
+            }
+            writeFile(clazz, target.packageName, target.contributionSimpleName(), contribution)
+        }
+    }
+
+    /** A `@ContributesTo` interface holding the single `@Binds [@IntoSet|@IntoMap @MapKey]` for [target]. */
+    private fun bindingModule(
+        clazz: KSClassDeclaration,
+        target: ClassName,
+        scope: ClassName,
+        replaces: List<ClassName>,
+        multibinding: Boolean,
+    ): TypeSpec {
+        val boundType = (clazz.boundTypeArgument() ?: clazz.singleSupertype())
+        val mapKey = if (multibinding) clazz.mapKeyAnnotation()?.toAnnotationSpec() else null
+        val binds = PropertySpec
+            .builder("bind${target.simpleName}", boundType)
+            .receiver(target)
+            .addAnnotation(BINDS)
+            .apply {
+                when {
+                    mapKey != null -> { addAnnotation(INTO_MAP); addAnnotation(mapKey) }
+                    multibinding -> addAnnotation(INTO_SET)
+                }
+            }
+            .build()
+        return TypeSpec.interfaceBuilder(target.contributionName())
+            .addAnnotation(contributesTo(scope, replaces))
+            .addProperty(binds)
+            .build()
+    }
+
+    private fun ClassName.contributionSimpleName(): String =
+        "${simpleNames.joinToString("_")}_WhetstoneContribution"
+
+    private fun ClassName.contributionName(): ClassName =
+        ClassName(packageName, contributionSimpleName())
+
+    /** The generated contribution-module name for a class referenced in `replaces`. */
+    private fun ClassName.contributionModule(): ClassName = contributionName()
 
     /**
      * ```
@@ -305,8 +384,43 @@ internal class WhetstoneSymbolProcessor(
     private fun classKey(target: TypeName): AnnotationSpec =
         AnnotationSpec.builder(CLASS_KEY).addMember("%T::class", target).build()
 
-    private fun contributesTo(scope: ClassName): AnnotationSpec =
-        AnnotationSpec.builder(CONTRIBUTES_TO).addMember("%T::class", scope).build()
+    private fun contributesTo(scope: ClassName, replaces: List<ClassName> = emptyList()): AnnotationSpec {
+        val builder = AnnotationSpec.builder(CONTRIBUTES_TO).addMember("%T::class", scope)
+        if (replaces.isNotEmpty()) {
+            val joined = replaces.map { CodeBlock.of("%T::class", it) }.joinToCode(", ")
+            builder.addMember("replaces = [%L]", joined)
+        }
+        return builder.build()
+    }
+
+    private fun KSAnnotation.classListArgument(name: String): List<ClassName> {
+        val value = arguments.firstOrNull { it.name?.asString() == name }?.value as? List<*> ?: return emptyList()
+        return value.mapNotNull { (it as? KSType)?.toClassName() }
+    }
+
+    /** The `boundType` of the class's contribution annotation, or null when it is `Unit` (= infer). */
+    private fun KSClassDeclaration.boundTypeArgument(): ClassName? {
+        val annotation = annotations.firstOrNull {
+            it.annotationType.resolve().declaration.qualifiedName?.asString() in INJECTOR_CONTRIBUTION_FQ
+        } ?: return null
+        return annotation.classArgument(NAME_BOUND_TYPE)?.takeUnless { it.canonicalName == UNIT_FQ }
+    }
+
+    /** The single non-`Any` supertype, used when `boundType` is left as `Unit`. */
+    private fun KSClassDeclaration.singleSupertype(): ClassName = superTypes
+        .mapNotNull { it.resolve().declaration as? KSClassDeclaration }
+        .filter { it.qualifiedName?.asString() != ANY_FQ }
+        .toList()
+        .single()
+        .toClassName()
+
+    /** The map-key annotation on the class (one itself meta-annotated with Metro/Dagger `@MapKey`), if any. */
+    private fun KSClassDeclaration.mapKeyAnnotation(): KSAnnotation? = annotations.firstOrNull { annotation ->
+        val declaration = annotation.annotationType.resolve().declaration as? KSClassDeclaration
+        declaration?.annotations?.any {
+            it.annotationType.resolve().declaration.qualifiedName?.asString() in MAP_KEY_FQ_NAMES
+        } == true
+    }
 
     private fun KSClassDeclaration.metaAnnotation(fqName: String): KSAnnotation? =
         annotations.firstOrNull {
@@ -345,6 +459,18 @@ internal class WhetstoneSymbolProcessor(
         const val CONTRIBUTES_INJECTOR = "com.deliveryhero.whetstone.injector.ContributesInjector"
         const val CONTRIBUTES_APP_INJECTOR = "com.deliveryhero.whetstone.app.ContributesAppInjector"
 
+        const val INJECTOR_PACKAGE = "com.deliveryhero.whetstone.injector"
+        const val CONTRIBUTES_TO_FQ = "$INJECTOR_PACKAGE.ContributesTo"
+        const val CONTRIBUTES_BINDING_FQ = "$INJECTOR_PACKAGE.ContributesBinding"
+        const val CONTRIBUTES_MULTIBINDING_FQ = "$INJECTOR_PACKAGE.ContributesMultibinding"
+        val INJECTOR_CONTRIBUTION_FQ = setOf(CONTRIBUTES_BINDING_FQ, CONTRIBUTES_MULTIBINDING_FQ)
+        val MAP_KEY_FQ_NAMES = setOf("dev.zacsweers.metro.MapKey", "dagger.MapKey")
+
+        const val NAME_REPLACES = "replaces"
+        const val NAME_BOUND_TYPE = "boundType"
+        const val UNIT_FQ = "kotlin.Unit"
+        const val ANY_FQ = "kotlin.Any"
+
         val INJECT_FQ_NAMES = setOf(
             "javax.inject.Inject",
             "jakarta.inject.Inject",
@@ -360,6 +486,7 @@ internal class WhetstoneSymbolProcessor(
         val METRO = "dev.zacsweers.metro"
         val BINDS = ClassName(METRO, "Binds")
         val INTO_MAP = ClassName(METRO, "IntoMap")
+        val INTO_SET = ClassName(METRO, "IntoSet")
         val CLASS_KEY = ClassName(METRO, "ClassKey")
         val CONTRIBUTES_TO = ClassName(METRO, "ContributesTo")
         val MEMBERS_INJECTOR = ClassName(METRO, "MembersInjector")

@@ -3,6 +3,7 @@ package com.deliveryhero.whetstone.sample
 import androidx.test.core.app.ApplicationProvider
 import com.deliveryhero.whetstone.Whetstone
 import com.deliveryhero.whetstone.app.ApplicationComponent
+import com.deliveryhero.whetstone.sample.library.InjectorAnnotationsProbe
 import com.deliveryhero.whetstone.worker.MultibindingWorkerFactory
 import com.deliveryhero.whetstone.worker.WorkerFactoryProvider
 import org.junit.Test
@@ -43,5 +44,19 @@ class WhetstoneRuntimeTest {
     fun `worker graph-extension factory resolves the multibinding worker factory`() {
         val provider = Whetstone.fromApplication<WorkerFactoryProvider>(app)
         assertTrue(provider.workerFactory is MultibindingWorkerFactory)
+    }
+
+    @Test
+    fun `injector contribution annotations resolve via metro interop`() {
+        val probe = Whetstone.fromApplication<InjectorAnnotationsProbe>(app)
+        // @ContributesBinding(boundType = Greeter::class)
+        assertEquals("real-greeter", probe.greeter.greet())
+        // @ContributesBinding(replaces = [DefaultApi::class]) — the fake must win
+        assertEquals("fake", probe.api.name())
+        // @ContributesMultibinding -> Set<Interceptor>
+        assertEquals(setOf("auth", "logging"), probe.interceptors.map { it.id() }.toSet())
+        // @ContributesMultibinding + custom @DestinationKey -> Map<String, Destination>
+        assertEquals(setOf("home", "cart"), probe.destinations.keys)
+        assertEquals("/home", probe.destinations["home"]?.route())
     }
 }
