@@ -14,6 +14,9 @@ consumer-facing annotation and `Whetstone.*` runtime APIs are source-compatible.
 for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
 
 ### Added
+- **`@BindsInstance`** (`com.deliveryhero.whetstone.injector.BindsInstance`) — a drop-in for
+  `dagger.BindsInstance`. A typealias to Metro's `@Provides` (what Metro uses to bind graph-factory
+  parameters), so `fun create(@BindsInstance app: Application)` keeps working. Pure import swap.
 - **`@Reusable`** (`com.deliveryhero.whetstone.Reusable`) — a drop-in for `dagger.Reusable` so consumers
   can delete that import. Metro has no opportunistic-cache scope, so this is a no-op marker (Metro
   ignores it → unscoped), which is within Dagger's `@Reusable` contract. Use `@SingleIn(scope)` for

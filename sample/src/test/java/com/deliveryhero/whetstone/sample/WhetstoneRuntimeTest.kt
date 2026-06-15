@@ -3,7 +3,9 @@ package com.deliveryhero.whetstone.sample
 import androidx.test.core.app.ApplicationProvider
 import com.deliveryhero.whetstone.Whetstone
 import com.deliveryhero.whetstone.app.ApplicationComponent
+import com.deliveryhero.whetstone.sample.library.ConfigGraph
 import com.deliveryhero.whetstone.sample.library.InjectorAnnotationsProbe
+import dev.zacsweers.metro.createGraphFactory
 import com.deliveryhero.whetstone.worker.MultibindingWorkerFactory
 import com.deliveryhero.whetstone.worker.WorkerFactoryProvider
 import org.junit.Test
@@ -58,5 +60,12 @@ class WhetstoneRuntimeTest {
         // @ContributesMultibinding + custom @DestinationKey -> Map<String, Destination>
         assertEquals(setOf("home", "cart"), probe.destinations.keys)
         assertEquals("/home", probe.destinations["home"]?.route())
+    }
+
+    @Test
+    fun `BindsInstance binds a factory-provided instance into a graph`() {
+        // whetstone @BindsInstance (typealias to Metro @Provides) on a factory param must bind.
+        val graph = createGraphFactory<ConfigGraph.Factory>().create("hello-config")
+        assertEquals("hello-config", graph.configName)
     }
 }

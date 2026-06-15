@@ -2,9 +2,11 @@ package com.deliveryhero.whetstone.sample.library
 
 import com.deliveryhero.whetstone.Reusable
 import com.deliveryhero.whetstone.app.ApplicationScope
+import com.deliveryhero.whetstone.injector.BindsInstance
 import com.deliveryhero.whetstone.injector.ContributesBinding
 import com.deliveryhero.whetstone.injector.ContributesMultibinding
 import com.deliveryhero.whetstone.injector.ContributesTo
+import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.MapKey
 import javax.inject.Inject
 
@@ -86,4 +88,16 @@ public interface InjectorAnnotationsProbe {
     public val api: Api
     public val interceptors: Set<Interceptor>
     public val destinations: Map<String, Destination>
+}
+
+// --- @BindsInstance verification: a standalone graph whose factory binds an instance ---
+@DependencyGraph
+public interface ConfigGraph {
+    public val configName: String
+
+    @DependencyGraph.Factory
+    public interface Factory {
+        // whetstone @BindsInstance == Metro @Provides — binds the param into the graph
+        public fun create(@BindsInstance configName: String): ConfigGraph
+    }
 }
