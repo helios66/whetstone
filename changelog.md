@@ -14,6 +14,10 @@ consumer-facing annotation and `Whetstone.*` runtime APIs are source-compatible.
 for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
 
 ### Added
+- **`@Reusable`** (`com.deliveryhero.whetstone.Reusable`) — a drop-in for `dagger.Reusable` so consumers
+  can delete that import. Metro has no opportunistic-cache scope, so this is a no-op marker (Metro
+  ignores it → unscoped), which is within Dagger's `@Reusable` contract. Use `@SingleIn(scope)` for
+  guaranteed caching. Part of the Dagger-eviction import-mapping (see the migration spec).
 - **Anvil-compatible contribution annotations** under `com.deliveryhero.whetstone.injector`:
   `@ContributesTo(scope, replaces)`, `@ContributesBinding(scope, boundType, replaces)`, and
   `@ContributesMultibinding(scope, boundType, replaces)`. The `whetstone-compiler` KSP processor

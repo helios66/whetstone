@@ -1,6 +1,9 @@
 public abstract interface annotation class com/deliveryhero/whetstone/InternalWhetstoneApi : java/lang/annotation/Annotation {
 }
 
+public abstract interface annotation class com/deliveryhero/whetstone/Reusable : java/lang/annotation/Annotation {
+}
+
 public final class com/deliveryhero/whetstone/Whetstone {
 	public static final field INSTANCE Lcom/deliveryhero/whetstone/Whetstone;
 	public final fun fromActivity (Landroid/app/Activity;)Ljava/lang/Object;

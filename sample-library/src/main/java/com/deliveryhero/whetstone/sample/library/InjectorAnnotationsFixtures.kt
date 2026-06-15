@@ -1,5 +1,6 @@
 package com.deliveryhero.whetstone.sample.library
 
+import com.deliveryhero.whetstone.Reusable
 import com.deliveryhero.whetstone.app.ApplicationScope
 import com.deliveryhero.whetstone.injector.ContributesBinding
 import com.deliveryhero.whetstone.injector.ContributesMultibinding
@@ -20,6 +21,8 @@ public interface Greeter {
     public fun greet(): String
 }
 
+// @Reusable here verifies Metro tolerates the no-op marker alongside a real contribution.
+@Reusable
 @ContributesBinding(ApplicationScope::class, boundType = Greeter::class)
 public class RealGreeter @Inject constructor() : Greeter {
     override fun greet(): String = "real-greeter"
