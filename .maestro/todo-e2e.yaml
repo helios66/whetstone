@@ -13,12 +13,17 @@
 # produces a reviewable release trace; `both` runs the full gauntlet across build variants).
 appId: com.deliveryhero.whetstone.sample
 ---
-- launchApp:
-    clearState: true
+# NOTE: no `clearState` — the runner uninstalls+reinstalls a fresh APK per variant, and the app keeps
+# no persistent state (in-memory mutableStateListOf), so a clean slate is already guaranteed. Some OEM
+# devices also reject `pm clear` from adb (SecurityException: no CLEAR_APP_USER_DATA permission), which
+# would fail launchApp.
+- launchApp
 
-# the seeded list renders
-- assertVisible:
-    text: "Email the client.*"
+# the seeded list renders — extendedWaitUntil (not assertVisible) tolerates a slow cold start (debug
+# build + no baseline profile + heavy Mundus compose tracing can be ~8s on a slow physical device).
+- extendedWaitUntil:
+    visible: "Email the client.*"
+    timeout: 30000
 
 # --- Stats screen: fires refreshStats -> computeStatsScore (scoreFor, manual span, all fixtures,
 #     probe, cancellation). Wait until the score card is composed. ---
