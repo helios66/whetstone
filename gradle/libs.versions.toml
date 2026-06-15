@@ -39,7 +39,7 @@ mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublis
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 # NOTE: the Mundus compiler plugin is no longer applied via a module `plugins {}` alias — it is
-# applied (and configured) by the `com.deliveryhero.whetstone.mundus` build-logic convention plugin,
+# applied (and configured) by the `com.unpopulardev.whetstone.mundus` build-logic convention plugin,
 # gated on `-Pmundus.present`. The convention compiles against `mundusGradle` (below).
 
 [libraries]

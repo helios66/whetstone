@@ -8,7 +8,7 @@ pluginManagement {
         google()
         mavenCentral()
         // Mundus is no longer applied via a module `plugins {}` alias — the
-        // `com.deliveryhero.whetstone.mundus` build-logic convention applies it. But build-logic's
+        // `com.unpopulardev.whetstone.mundus` build-logic convention applies it. But build-logic's
         // own `mundus-gradle` dependency is resolved against THIS pluginManagement repo set when its
         // plugin classpath is consumed by the modules, so GHP must be declared here too. Gated on
         // -Pmundus.present so a clone without GHP access (the no-op convention twin) doesn't need it.

@@ -14,14 +14,14 @@ consumer-facing annotation and `Whetstone.*` runtime APIs are source-compatible.
 for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
 
 ### Added
-- **`@BindsInstance`** (`com.deliveryhero.whetstone.injector.BindsInstance`) — a drop-in for
+- **`@BindsInstance`** (`com.unpopulardev.whetstone.injector.BindsInstance`) — a drop-in for
   `dagger.BindsInstance`. A typealias to Metro's `@Provides` (what Metro uses to bind graph-factory
   parameters), so `fun create(@BindsInstance app: Application)` keeps working. Pure import swap.
-- **`@Reusable`** (`com.deliveryhero.whetstone.Reusable`) — a drop-in for `dagger.Reusable` so consumers
+- **`@Reusable`** (`com.unpopulardev.whetstone.Reusable`) — a drop-in for `dagger.Reusable` so consumers
   can delete that import. Metro has no opportunistic-cache scope, so this is a no-op marker (Metro
   ignores it → unscoped), which is within Dagger's `@Reusable` contract. Use `@SingleIn(scope)` for
   guaranteed caching. Part of the Dagger-eviction import-mapping (see the migration spec).
-- **Anvil-compatible contribution annotations** under `com.deliveryhero.whetstone.injector`:
+- **Anvil-compatible contribution annotations** under `com.unpopulardev.whetstone.injector`:
   `@ContributesTo(scope, replaces)`, `@ContributesBinding(scope, boundType, replaces)`, and
   `@ContributesMultibinding(scope, boundType, replaces)`. The `whetstone-compiler` KSP processor
   translates each into a native Metro `@ContributesTo` module (`<Class>_WhetstoneContribution`), so
@@ -42,7 +42,7 @@ for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
   `scripts/mundus-trace-scenarios.sh`. Dev-only — not part of the published artifacts. The Mundus
   integration is gated behind `-Pmundus.present` (default `true`): a clone without access to the
   private `helios66/mundus` GitHub Packages registry builds the sample with `-Pmundus.present=false`,
-  which swaps in a no-op convention plugin (`com.deliveryhero.whetstone.mundus`, in build-logic) and
+  which swaps in a no-op convention plugin (`com.unpopulardev.whetstone.mundus`, in build-logic) and
   local no-op runtime stubs — so the testbed never makes the sample un-buildable.
 
 ### Dependencies
@@ -53,10 +53,13 @@ for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
   androidx.test. Metro 1.2.0 → 1.2.1. Kotlin stays 2.3.20; AGP stays on the 8.x line.
 
 ### Changed
-- **Distribution moved to GitHub Packages.** This fork publishes under group `io.github.helios66`
-  to `https://maven.pkg.github.com/helios66/whetstone-private` (plugin id
-  `io.github.helios66.whetstone`). Consumers add that Maven repo with `gpr.user`/`gpr.key`
-  credentials — see the README. (Maven Central / Sonatype signing are disabled for this fork.)
+- **Namespace migrated to `com.unpopulardev.whetstone`** (group + every package + the
+  `com.unpopulardev.whetstone` Gradle plugin id), from the previous `io.github.helios66` group /
+  `com.deliveryhero.whetstone` packages. Clean break — no relocation POM at the old coordinates.
+- **Distribution moved to Maven Central.** This fork now publishes to the Sonatype Central Portal
+  under `com.unpopulardev.whetstone` (GPG-signed, `USER_MANAGED`) via the vanniktech maven-publish
+  plugin. Consumers just need `mavenCentral()` — no credentials or custom repository. The previous
+  private GitHub Packages distribution is dropped. See README + RELEASING.md.
 - **Migrated the DI engine from Square Anvil + Google Dagger to [Metro](https://github.com/zacsweers/metro) 1.2.0.**
   The public annotation API (`@ContributesViewModel`, `@ContributesFragment`,
   `@ContributesActivityInjector`, `@ContributesServiceInjector`, `@ContributesViewInjector`,

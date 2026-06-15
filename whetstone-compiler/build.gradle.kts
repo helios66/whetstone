@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm")
-    id("com.deliveryhero.whetstone.build")
+    id("com.unpopulardev.whetstone.build")
     id("com.vanniktech.maven.publish")
 }
 

@@ -20,12 +20,12 @@ kotlin.sourceSets.named("main") {
 
 gradlePlugin {
     plugins.register("buildPlugin") {
-        id = "com.deliveryhero.whetstone.build"
-        implementationClass = "com.deliveryhero.whetstone.build.BuildPlugin"
+        id = "com.unpopulardev.whetstone.build"
+        implementationClass = "com.unpopulardev.whetstone.build.BuildPlugin"
     }
     plugins.register("mundusTracing") {
-        id = "com.deliveryhero.whetstone.mundus"
-        implementationClass = "com.deliveryhero.whetstone.build.MundusTracingConventionPlugin"
+        id = "com.unpopulardev.whetstone.mundus"
+        implementationClass = "com.unpopulardev.whetstone.build.MundusTracingConventionPlugin"
     }
 }
 

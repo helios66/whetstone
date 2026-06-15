@@ -11,7 +11,7 @@
 #
 # Driven by scripts/mundus-trace-scenarios.sh — every mode uses this one flow (the `e2e` mode
 # produces a reviewable release trace; `both` runs the full gauntlet across build variants).
-appId: com.deliveryhero.whetstone.sample
+appId: com.unpopulardev.whetstone.sample
 ---
 # NOTE: no `clearState` — the runner uninstalls+reinstalls a fresh APK per variant, and the app keeps
 # no persistent state (in-memory mutableStateListOf), so a clean slate is already guaranteed. Some OEM

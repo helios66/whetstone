@@ -41,22 +41,41 @@ java {
 gradlePlugin {
     plugins {
         create("whetstone") {
-            id = "io.github.helios66.whetstone"
-            implementationClass = "com.deliveryhero.whetstone.gradle.WhetstonePlugin"
+            id = "com.unpopulardev.whetstone"
+            implementationClass = "com.unpopulardev.whetstone.gradle.WhetstonePlugin"
         }
     }
 }
 
-// Local-only: publish the Gradle plugin (and its marker) to a private GitHub Packages registry.
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
-            credentials {
-                username = (findProperty("gpr.user") as String?) ?: System.getenv("GITHUB_ACTOR")
-                password = (findProperty("gpr.key") as String?) ?: System.getenv("GITHUB_TOKEN")
+// Central-only: publish the Gradle plugin (+ its `com.unpopulardev.whetstone` plugin marker) to the
+// Sonatype Central Portal via vanniktech. This is an included build, so vanniktech can't read the
+// parent's POM_URL/SCM/LICENCE/DEVELOPER as gradle properties — loadParentProperties() copied them
+// into `extra`, so the POM is set explicitly from there (single source of truth: ../gradle.properties).
+mavenPublishing {
+    publishToMavenCentral()   // Central Portal; USER_MANAGED (manual finalize in the Portal UI)
+    signAllPublications()     // GPG-signs releases (snapshots are left unsigned by design)
+    pom {
+        name.set(extra["POM_NAME"].toString())
+        description.set(extra["POM_DESCRIPTION"].toString())
+        url.set(extra["POM_URL"].toString())
+        licenses {
+            license {
+                name.set(extra["POM_LICENCE_NAME"].toString())
+                url.set(extra["POM_LICENCE_URL"].toString())
+                distribution.set(extra["POM_LICENCE_DIST"].toString())
             }
+        }
+        developers {
+            developer {
+                id.set(extra["POM_DEVELOPER_ID"].toString())
+                name.set(extra["POM_DEVELOPER_NAME"].toString())
+                url.set(extra["POM_DEVELOPER_URL"].toString())
+            }
+        }
+        scm {
+            url.set(extra["POM_SCM_URL"].toString())
+            connection.set(extra["POM_SCM_CONNECTION"].toString())
+            developerConnection.set(extra["POM_SCM_DEV_CONNECTION"].toString())
         }
     }
 }
@@ -103,12 +122,12 @@ abstract class GenerateBuildConfigTask : DefaultTask() {
 
     @TaskAction
     fun taskAction() {
-        val buildFile = generatedSourceDir.file("com/deliveryhero/whetstone/gradle/BuildConfig.kt")
+        val buildFile = generatedSourceDir.file("com/unpopulardev/whetstone/gradle/BuildConfig.kt")
 
         buildFile.get().asFile.run {
             parentFile.mkdirs()
             val content = buildString {
-                appendLine("package com.deliveryhero.whetstone.gradle")
+                appendLine("package com.unpopulardev.whetstone.gradle")
                 appendLine()
                 appendLine("internal object BuildConfig {")
                 properties.get().forEach { (k, v) -> appendLine("  const val $k = \"$v\"") }

@@ -1,4 +1,4 @@
-[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-io.github.helios66%2Fwhetstone-2088FF?logo=github)](https://github.com/helios66/whetstone-private/packages)
+[![Maven Central](https://img.shields.io/maven-central/v/com.unpopulardev.whetstone/whetstone?logo=apachemaven&label=Maven%20Central)](https://central.sonatype.com/artifact/com.unpopulardev.whetstone/whetstone)
 
 # Whetstone
 
@@ -30,25 +30,17 @@ The goals of Whetstone are:
 
 ## Getting Started
 
-Whetstone is published to **GitHub Packages** under `io.github.helios66`. First add the repository
-(with credentials — a GitHub token with `read:packages`) to your `settings.gradle.kts` so both the
-plugin and the runtime artifacts resolve:
+Whetstone is published to **Maven Central** under `com.unpopulardev.whetstone`. No credentials or
+custom repositories are required — just make sure `mavenCentral()` is in your repositories (it is by
+default in most projects):
 
 ```kotlin
 // settings.gradle.kts
-val ghUser = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
-val ghKey = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
-
 pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
         mavenCentral()
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
-            credentials { username = ghUser; password = ghKey }
-        }
     }
 }
 
@@ -56,11 +48,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
-            credentials { username = ghUser; password = ghKey }
-        }
     }
 }
 ```
@@ -69,7 +56,7 @@ Then apply the whetstone plugin in the `build.gradle` file of any module that re
 
 ```kotlin
 plugins {
-    id("io.github.helios66.whetstone").version("<latest version>")
+    id("com.unpopulardev.whetstone").version("<latest version>")
 }
 ```
 
@@ -80,21 +67,14 @@ Or you can use the old way to apply a plugin:
 buildscript {
   repositories {
     mavenCentral()
-    maven {
-      url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
-      credentials {
-        username = providers.gradleProperty("gpr.user").orNull
-        password = providers.gradleProperty("gpr.key").orNull
-      }
-    }
   }
   dependencies {
-    classpath("io.github.helios66:whetstone-gradle-plugin:${latest_version}")
+    classpath("com.unpopulardev.whetstone:whetstone-gradle-plugin:${latest_version}")
   }
 }
 
 // In individual modules
-apply(plugin = "io.github.helios66.whetstone")
+apply(plugin = "com.unpopulardev.whetstone")
 ```
 
 This automatically configures Metro and KSP, and also adds the necessary whetstone dependencies for you.
@@ -108,7 +88,7 @@ release and snapshot versions — no extra repository is needed. Just use the sn
 
 ```kotlin
 plugins {
-    id("io.github.helios66.whetstone").version("<version>-SNAPSHOT")
+    id("com.unpopulardev.whetstone").version("<version>-SNAPSHOT")
 }
 ```
 
@@ -329,7 +309,7 @@ To disable automatic initialization, you can remove the initializer from your An
    android:exported="false"
    tools:node="merge">
    <meta-data
-       android:name="com.deliveryhero.whetstone.worker.WhetstoneWorkerInitializer"
+       android:name="com.unpopulardev.whetstone.worker.WhetstoneWorkerInitializer"
        android:value="androidx.startup"
        tools:node="remove" />
 </provider>

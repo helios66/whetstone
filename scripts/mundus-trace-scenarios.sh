@@ -60,7 +60,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 DEVICE="${DEVICE:-emulator-5556}"
-PKG="com.deliveryhero.whetstone.sample"
+PKG="com.unpopulardev.whetstone.sample"
 # Mundus 0.13.0 moved its trace output from the app-private external files dir
 # (Android/data/$PKG/files/mundus-traces) to the shared media dir below. The runtime logs the
 # active path at startup: "traces in /storage/emulated/0/Android/media/$PKG/mundus-traces".

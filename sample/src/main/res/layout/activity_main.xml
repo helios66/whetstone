@@ -29,7 +29,7 @@
         />
 
     <!-- Compact footer strip: demonstrates @ContributesViewInjector (Whetstone view injection). -->
-    <com.deliveryhero.whetstone.sample.MainView
+    <com.unpopulardev.whetstone.sample.MainView
         android:id="@+id/hello_world_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

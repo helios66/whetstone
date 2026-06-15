@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("com.deliveryhero.whetstone.build")
+    id("com.unpopulardev.whetstone.build")
     id("dev.zacsweers.metro")
     id("com.vanniktech.maven.publish")
 }
@@ -24,5 +24,5 @@ dependencies {
     testImplementation(kotlin("reflect"))
 }
 android {
-    namespace = "com.deliveryhero.whetstone"
+    namespace = "com.unpopulardev.whetstone"
 }

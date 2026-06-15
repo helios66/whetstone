@@ -2,12 +2,12 @@ plugins {
     alias(libs.plugins.androidApp)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kotlinCompose)
-    id("com.deliveryhero.whetstone.build")
-    id("io.github.helios66.whetstone")
+    id("com.unpopulardev.whetstone.build")
+    id("com.unpopulardev.whetstone")
     // Mundus auto-tracing convention (build-logic). Applies + configures the Mundus compiler plugin
     // when -Pmundus.present is not false (default true); a pure no-op otherwise. Whole-app tracing
     // config (includePackages + suspend + presets) lives in the convention, not here.
-    id("com.deliveryhero.whetstone.mundus")
+    id("com.unpopulardev.whetstone.mundus")
 }
 
 // Whether the private Mundus artifacts are available (GitHub Packages). Default true for the owner's
@@ -23,11 +23,11 @@ whetstone {
 }
 
 android {
-    namespace = "com.deliveryhero.whetstone.sample"
+    namespace = "com.unpopulardev.whetstone.sample"
     defaultConfig {
         versionCode = 1
         versionName = "1.0"
-        applicationId = "com.deliveryhero.whetstone.sample"
+        applicationId = "com.unpopulardev.whetstone.sample"
         targetSdk = 36
     }
 

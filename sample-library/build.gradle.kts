@@ -2,11 +2,11 @@ plugins {
     alias(libs.plugins.androidLib)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kotlinCompose)
-    id("com.deliveryhero.whetstone.build")
-    id("io.github.helios66.whetstone")
+    id("com.unpopulardev.whetstone.build")
+    id("com.unpopulardev.whetstone")
     // Mundus auto-tracing convention (build-logic) — multi-module: traces this library too. Applies
     // + configures the Mundus compiler plugin when -Pmundus.present is not false; no-op otherwise.
-    id("com.deliveryhero.whetstone.mundus")
+    id("com.unpopulardev.whetstone.mundus")
 }
 
 // Whether the private Mundus artifacts are available (GitHub Packages). Default true for the owner's
@@ -15,7 +15,7 @@ plugins {
 val mundusPresent = (providers.gradleProperty("mundus.present").orNull ?: "true").toBoolean()
 
 android {
-    namespace = "com.deliveryhero.whetstone.sample.library"
+    namespace = "com.unpopulardev.whetstone.sample.library"
     compileSdk = 36
 
     defaultConfig {

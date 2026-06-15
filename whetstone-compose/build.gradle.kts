@@ -2,13 +2,13 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
-    id("com.deliveryhero.whetstone.build")
+    id("com.unpopulardev.whetstone.build")
     id("com.vanniktech.maven.publish")
 }
 
 android {
     buildFeatures.compose = true
-    namespace = "com.deliveryhero.whetstone.compose"
+    namespace = "com.unpopulardev.whetstone.compose"
 }
 
 dependencies {

@@ -81,19 +81,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: ./gradlew build
 
-      - name: Publish to GitHub Packages
+      - name: Publish to Maven Central
         env:
+          # Mundus resolution during the build still needs read:packages.
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          # Central Portal token + GPG key, bridged to vanniktech's expected property names.
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.CENTRAL_PORTAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.CENTRAL_PORTAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: |
-            echo "Publishing version ${{ steps.version.outputs.version }} to GitHub Packages"
-            # Library modules (root subprojects) + the Gradle plugin (included build) -> the
-            # GitHubPackages maven repo wired in build.gradle.kts / whetstone-gradle-plugin.
-            ./gradlew clean -x test -x lint \
-              publishAllPublicationsToGitHubPackagesRepository \
-              :whetstone-gradle-plugin:publishAllPublicationsToGitHubPackagesRepository
-            echo "Published to https://maven.pkg.github.com/helios66/whetstone-private"
-            echo "Verify: https://github.com/helios66/whetstone-private/packages"
+            echo "Publishing version ${{ steps.version.outputs.version }} to Maven Central (USER_MANAGED)"
+            # Library modules (root subprojects) + the Gradle plugin (included build) -> the Sonatype
+            # Central Portal via vanniktech. USER_MANAGED: this stages the bundle; finalize with the
+            # "Publish" button at https://central.sonatype.com (or set automaticRelease=true to skip).
+            ./gradlew clean -x test -x lint publishAllPublicationsToMavenCentralRepository
+            ./gradlew -p whetstone-gradle-plugin -x test publishAllPublicationsToMavenCentralRepository
+            echo "Staged to Central Portal. Finalize at https://central.sonatype.com -> Deployments"
 
       - name: Bump to next SNAPSHOT version
         if: github.event_name == 'release' && steps.version.outputs.is_release == 'true'

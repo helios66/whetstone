@@ -1,63 +1,63 @@
-public abstract interface annotation class com/deliveryhero/whetstone/worker/ContributesWorker : java/lang/annotation/Annotation {
+public abstract interface annotation class com/unpopulardev/whetstone/worker/ContributesWorker : java/lang/annotation/Annotation {
 }
 
-public final class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory : androidx/work/WorkerFactory {
-	public fun <init> (Lcom/deliveryhero/whetstone/worker/WorkerComponent$Factory;)V
+public final class com/unpopulardev/whetstone/worker/MultibindingWorkerFactory : androidx/work/WorkerFactory {
+	public fun <init> (Lcom/unpopulardev/whetstone/worker/WorkerComponent$Factory;)V
 	public fun createWorker (Landroid/content/Context;Ljava/lang/String;Landroidx/work/WorkerParameters;)Landroidx/work/ListenableWorker;
 }
 
-public abstract interface class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroContributionToApplicationScope {
-	public fun bindsAsWorkerFactory (Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;)Landroidx/work/WorkerFactory;
+public abstract interface class com/unpopulardev/whetstone/worker/MultibindingWorkerFactory$MetroContributionToApplicationScope {
+	public fun bindsAsWorkerFactory (Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory;)Landroidx/work/WorkerFactory;
 }
 
-public abstract class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroContributionToApplicationScope$BindsMirror {
-	public abstract fun bindsAsWorkerFactory (Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;)Landroidx/work/WorkerFactory;
+public abstract class com/unpopulardev/whetstone/worker/MultibindingWorkerFactory$MetroContributionToApplicationScope$BindsMirror {
+	public abstract fun bindsAsWorkerFactory (Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory;)Landroidx/work/WorkerFactory;
 }
 
-public final class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory : dev/zacsweers/metro/internal/Factory {
-	public static final field Companion Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory$Companion;
+public final class com/unpopulardev/whetstone/worker/MultibindingWorkerFactory$MetroFactory : dev/zacsweers/metro/internal/Factory {
+	public static final field Companion Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory$MetroFactory$Companion;
 	public synthetic fun <init> (Ldev/zacsweers/metro/Provider;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public static final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory;
-	public final fun invoke ()Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
+	public static final fun create (Ldev/zacsweers/metro/Provider;)Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory$MetroFactory;
+	public final fun invoke ()Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory;
 	public synthetic fun invoke ()Ljava/lang/Object;
-	public final fun mirrorFunction (Lcom/deliveryhero/whetstone/worker/WorkerComponent$Factory;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
-	public static final fun newInstance (Lcom/deliveryhero/whetstone/worker/WorkerComponent$Factory;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
+	public final fun mirrorFunction (Lcom/unpopulardev/whetstone/worker/WorkerComponent$Factory;)Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory;
+	public static final fun newInstance (Lcom/unpopulardev/whetstone/worker/WorkerComponent$Factory;)Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory;
 }
 
-public final class com/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory$Companion {
-	public final fun create (Ldev/zacsweers/metro/Provider;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory$MetroFactory;
-	public final fun newInstance (Lcom/deliveryhero/whetstone/worker/WorkerComponent$Factory;)Lcom/deliveryhero/whetstone/worker/MultibindingWorkerFactory;
+public final class com/unpopulardev/whetstone/worker/MultibindingWorkerFactory$MetroFactory$Companion {
+	public final fun create (Ldev/zacsweers/metro/Provider;)Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory$MetroFactory;
+	public final fun newInstance (Lcom/unpopulardev/whetstone/worker/WorkerComponent$Factory;)Lcom/unpopulardev/whetstone/worker/MultibindingWorkerFactory;
 }
 
-public final class com/deliveryhero/whetstone/worker/WhetstoneWorkerInitializer : androidx/startup/Initializer {
+public final class com/unpopulardev/whetstone/worker/WhetstoneWorkerInitializer : androidx/startup/Initializer {
 	public fun <init> ()V
 	public fun create (Landroid/content/Context;)Landroidx/work/WorkManager;
 	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
 	public fun dependencies ()Ljava/util/List;
 }
 
-public abstract interface class com/deliveryhero/whetstone/worker/WorkerComponent {
+public abstract interface class com/unpopulardev/whetstone/worker/WorkerComponent {
 	public abstract fun getWorkerMap ()Ljava/util/Map;
 }
 
-public abstract class com/deliveryhero/whetstone/worker/WorkerComponent$BindsMirror {
+public abstract class com/unpopulardev/whetstone/worker/WorkerComponent$BindsMirror {
 	public abstract fun workerMap4205200196 ()Ljava/util/Map;
 }
 
-public abstract interface class com/deliveryhero/whetstone/worker/WorkerComponent$Factory {
-	public abstract fun create (Landroid/content/Context;Landroidx/work/WorkerParameters;)Lcom/deliveryhero/whetstone/worker/WorkerComponent;
+public abstract interface class com/unpopulardev/whetstone/worker/WorkerComponent$Factory {
+	public abstract fun create (Landroid/content/Context;Landroidx/work/WorkerParameters;)Lcom/unpopulardev/whetstone/worker/WorkerComponent;
 }
 
-public abstract interface class com/deliveryhero/whetstone/worker/WorkerComponent$Factory$MetroContributionToApplicationScope : com/deliveryhero/whetstone/worker/WorkerComponent$Factory {
+public abstract interface class com/unpopulardev/whetstone/worker/WorkerComponent$Factory$MetroContributionToApplicationScope : com/unpopulardev/whetstone/worker/WorkerComponent$Factory {
 }
 
-public abstract interface class com/deliveryhero/whetstone/worker/WorkerFactoryProvider {
+public abstract interface class com/unpopulardev/whetstone/worker/WorkerFactoryProvider {
 	public abstract fun getWorkerFactory ()Landroidx/work/WorkerFactory;
 }
 
-public abstract interface class com/deliveryhero/whetstone/worker/WorkerFactoryProvider$MetroContributionToApplicationScope : com/deliveryhero/whetstone/worker/WorkerFactoryProvider {
+public abstract interface class com/unpopulardev/whetstone/worker/WorkerFactoryProvider$MetroContributionToApplicationScope : com/unpopulardev/whetstone/worker/WorkerFactoryProvider {
 }
 
-public final class com/deliveryhero/whetstone/worker/WorkerScope {
+public final class com/unpopulardev/whetstone/worker/WorkerScope {
 }
 

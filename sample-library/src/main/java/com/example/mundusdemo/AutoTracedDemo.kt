@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
  * Mundus annotation-coverage fixture.
  *
  * This class deliberately lives **outside** the sample's `includePackages`
- * (`com.deliveryhero.whetstone`). So the only thing that can cause its methods to be traced is
+ * (`com.unpopulardev.whetstone`). So the only thing that can cause its methods to be traced is
  * the [AutoTrace] annotation — which makes it a precise test of the annotation-driven opt-in path,
  * distinct from package-based inclusion. It exercises @AutoTrace on both a plain and a suspend
  * function, plus a [NoTrace] method that must stay untraced even inside an @AutoTrace class.

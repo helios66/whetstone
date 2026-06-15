@@ -1,0 +1,55 @@
+package com.unpopulardev.whetstone.worker
+
+import android.content.Context
+import androidx.annotation.RestrictTo
+import androidx.work.ListenableWorker
+import androidx.work.WorkerFactory
+import androidx.work.WorkerParameters
+import com.unpopulardev.whetstone.SingleIn
+import com.unpopulardev.whetstone.app.ApplicationScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+
+@ContributesBinding(ApplicationScope::class)
+@SingleIn(ApplicationScope::class)
+@Inject
+public class MultibindingWorkerFactory(
+    private val workerComponentFactory: WorkerComponent.Factory
+) : WorkerFactory() {
+
+    override fun createWorker(
+        appContext: Context,
+        workerClassName: String,
+        workerParameters: WorkerParameters
+    ): ListenableWorker? {
+        val workerComponent = workerComponentFactory.create(appContext, workerParameters)
+        val workerClass = loadClass(appContext.classLoader, workerClassName) ?: return null
+
+        return workerComponent.workerMap[workerClass.kotlin]?.invoke()
+    }
+
+    internal companion object {
+
+        // Implementation adapted from androidx.fragment.app.FragmentFactory#loadClass
+        private val classCache: MutableMap<ClassLoader, MutableMap<String, Class<out ListenableWorker>>> =
+            hashMapOf()
+
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
+        internal fun loadClass(
+            classLoader: ClassLoader,
+            className: String,
+        ): Class<out ListenableWorker>? {
+            val classMap = classCache.getOrPut(classLoader) { hashMapOf() }
+            return classMap.getOrPut(className) {
+                try {
+                    Class.forName(className, false, classLoader)
+                        .asSubclass(ListenableWorker::class.java)
+                } catch (e: ClassNotFoundException) {
+                    return null
+                } catch (e: ClassCastException) {
+                    return null
+                }
+            }
+        }
+    }
+}

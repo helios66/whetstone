@@ -17,21 +17,32 @@ apiValidation {
     ignoredPackages.add("metro.hints")
 }
 
-// Local-only: publish the runtime + compiler artifacts to a private GitHub Packages registry.
-// Pair with `./gradlew publishAllPublicationsToGitHubPackagesRepository`. Credentials come from the
-// `gpr.user`/`gpr.key` Gradle properties or the GITHUB_ACTOR/GITHUB_TOKEN environment variables.
+// Central-only: each published library module (whetstone, -compiler, -compose, -worker) targets the
+// Sonatype Central Portal via vanniktech. Coordinates + the full POM (name/description/url/licence/
+// developer/scm) + the sources jar + the javadoc jar are derived automatically from the GROUP /
+// VERSION_NAME / POM_* gradle properties (root + per-module gradle.properties). Credentials and the
+// GPG key are supplied at invocation as ORG_GRADLE_PROJECT_* env vars (see RELEASING.md).
 subprojects {
     plugins.withId("com.vanniktech.maven.publish") {
-        configure<org.gradle.api.publish.PublishingExtension> {
-            repositories {
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/helios66/whetstone-private")
-                    credentials {
-                        username = (findProperty("gpr.user") as String?) ?: System.getenv("GITHUB_ACTOR")
-                        password = (findProperty("gpr.key") as String?) ?: System.getenv("GITHUB_TOKEN")
-                    }
-                }
+        configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+            publishToMavenCentral()   // Central Portal; USER_MANAGED (manual finalize in the Portal UI)
+            signAllPublications()     // GPG-signs releases (snapshots are left unsigned by design)
+        }
+    }
+}
+
+// Refuse to upload to Central without a signing key present — Central rejects unsigned release
+// bundles, and a silent unsigned attempt wastes an owner round-trip. publishToMavenLocal and
+// snapshot publishes are unaffected. Mirrors the sibling library's publish guard.
+allprojects {
+    tasks.matching { it.name == "publishAllPublicationsToMavenCentralRepository" }.configureEach {
+        doFirst {
+            require(
+                providers.environmentVariable("ORG_GRADLE_PROJECT_signingInMemoryKey").orNull?.isNotBlank() == true ||
+                    providers.gradleProperty("signingInMemoryKey").orNull?.isNotBlank() == true,
+            ) {
+                "Refusing to publish to Central without a signing key. Source the GPG key and pass it " +
+                    "as ORG_GRADLE_PROJECT_signingInMemoryKey (see RELEASING.md)."
             }
         }
     }
