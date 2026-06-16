@@ -57,15 +57,13 @@ class BuildPlugin : Plugin<Project> {
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_11
                 targetCompatibility = JavaVersion.VERSION_11
-                // Backport Java 8+ APIs (e.g. java.lang.Iterable#forEach, java.time) below their
-                // native API level so minSdk 23 can use them. Compiling on JDK 21 binds some calls
-                // to Java member functions that require API 24; desugaring makes them safe.
-                isCoreLibraryDesugaringEnabled = true
             }
         }
-        dependencies {
-            add("coreLibraryDesugaring", libs.findLibrary("desugarJdkLibs").get())
-        }
+        // NOTE: core library desugaring is intentionally NOT enabled here. Enabling it in the shared
+        // convention would stamp `coreLibraryDesugaringEnabled=true` into every published AAR's
+        // metadata, forcing all consumers to enable desugaring too. The library sources use no
+        // desugared APIs; only the sample modules do (Compose UI Iterable#forEach), so they enable
+        // it locally in their own build.gradle.kts.
     }
 
     private fun Project.configureDetekt() {

@@ -29,6 +29,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // Sample-only: the Compose UI here uses Iterable#forEach (API 24) under the JDK-21
+        // toolchain; desugaring keeps it safe on minSdk 23. Not in the shared convention, so it
+        // never reaches the published library AARs.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     if (!mundusPresent) {
@@ -39,6 +43,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugarJdkLibs)
 
     implementation(libs.androidxCore)
     implementation(libs.androidxAppCompat)

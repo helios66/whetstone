@@ -101,17 +101,20 @@ public class WhetstonePlugin : Plugin<Project> {
 
     /**
      * Opt-in Dagger interop, driven by `whetstone { addOns { daggerInterop.set(true) } }`. Mirrors
-     * Metro's `interop { includeDagger() }`: it flips both the annotation-recognition flag (so
-     * `@Module`, `@Provides`, `dagger.MapKey`, … are understood) and the runtime-interop flag (so
-     * `dagger.Lazy` and friends resolve at injection sites). This lets a codebase migrating off
-     * Dagger keep those imports instead of rewriting hundreds of files.
+     * Metro's `interop { includeDagger() }`, which flips: Dagger annotation recognition (so
+     * `@Module`, `@Provides`, `dagger.MapKey`, … are understood), Dagger runtime interop (so
+     * `dagger.Lazy` and friends resolve at injection sites), AND Jakarta annotation recognition
+     * (Dagger 2.50+ ships `jakarta.inject.*` variants). javax is already enabled unconditionally by
+     * [enableMetroJavaxInterop], so it isn't repeated here. This lets a codebase migrating off Dagger
+     * keep those imports instead of rewriting hundreds of files.
      *
-     * The flag is wired as a provider so Metro reads the consumer-supplied value at its own
+     * Each flag is wired as a provider so Metro reads the consumer-supplied value at its own
      * configuration time — no afterEvaluate ordering assumptions.
      */
     private fun Project.enableMetroDaggerInterop(enabled: org.gradle.api.provider.Provider<Boolean>) {
         metroInteropBoolProperty("getIncludeDaggerAnnotations").set(enabled)
         metroInteropBoolProperty("getEnableDaggerRuntimeInterop").set(enabled)
+        metroInteropBoolProperty("getIncludeJakartaAnnotations").set(enabled)
     }
 
     /**

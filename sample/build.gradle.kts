@@ -57,11 +57,16 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // Sample-only: the app dexes :sample-library, whose Compose UI uses Iterable#forEach
+        // (API 24) under the JDK-21 toolchain. Desugaring keeps it safe on minSdk 23. Not enabled
+        // in the shared convention, so it never lands in the published library AARs.
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
 dependencies {
     implementation(projects.sampleLibrary)
+    coreLibraryDesugaring(libs.desugarJdkLibs)
 
     implementation(libs.androidxActivity)
     implementation(libs.androidxCore)

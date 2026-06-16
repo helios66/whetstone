@@ -29,9 +29,8 @@ public abstract class WhetstoneExtension @Inject constructor(objects: ObjectFact
     public abstract val syncGeneratedSources: Property<Boolean>
 
     /**
-     * Allows configuring extra Whetstone add-ons.
-     *
-     * Currently, this only includes turning on/off Jetpack Compose and/or WorkManager support.
+     * Allows configuring extra Whetstone add-ons: Jetpack Compose support, WorkManager support, and
+     * Dagger interop (for migrating off Dagger). See [AddOnsHandler].
      */
     public val addOns: AddOnsHandler = objects.newInstance()
 
