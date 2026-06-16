@@ -3,17 +3,9 @@ package com.unpopulardev.whetstone.sample
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Text
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
@@ -22,12 +14,16 @@ import com.unpopulardev.whetstone.activity.ContributesActivityInjector
 import com.unpopulardev.whetstone.compose.injectedViewModel
 import com.unpopulardev.whetstone.sample.databinding.ActivityMainBinding
 import com.unpopulardev.whetstone.sample.library.MainDependency
-import com.unpopulardev.whetstone.sample.library.MainViewModel
 import com.unpopulardev.whetstone.sample.library.TodoRoot
 import com.unpopulardev.whetstone.sample.library.TodoViewModel
-import com.unpopulardev.whetstone.viewmodel.injectedViewModel
 import javax.inject.Inject
 
+/**
+ * The sample app's single screen. Whetstone is the DI engine for the whole app: this activity is
+ * member-injected (@ContributesActivityInjector), it hosts the Compose Todo app whose ViewModel is
+ * Whetstone-provided (injectedViewModel), and it also drives a Whetstone-injected Service, Worker,
+ * and Fragment — so every Android entry point in the app resolves through the same generated graph.
+ */
 @ContributesActivityInjector
 class MainActivity : AppCompatActivity() {
     private val serviceIntent by lazy { Intent(this, MainService::class.java) }
@@ -45,16 +41,16 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.composeView.setContent {
-            TodoHost()
+            MaterialTheme { TodoHost() }
         }
 
         // Exercise the @ContributesFragment path: the installed multibinding FragmentFactory
         // constructor-injects MainFragment.
         supportFragmentManager.fragmentFactory.instantiate(classLoader, MainFragment::class.java.name)
 
+        // @ContributesServiceInjector + @ContributesWorker: both resolve through the same graph.
         ContextCompat.startForegroundService(this, serviceIntent)
-        val request = OneTimeWorkRequest.from(MainWorker::class.java)
-        WorkManager.getInstance(this).enqueue(request)
+        WorkManager.getInstance(this).enqueue(OneTimeWorkRequest.from(MainWorker::class.java))
     }
 
     override fun onDestroy() {
@@ -64,42 +60,9 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+/** Hosts the Todo app, whose [TodoViewModel] is provided by Whetstone's generated graph. */
 @Composable
 fun TodoHost() {
     val viewModel: TodoViewModel = injectedViewModel()
-    // No in-app scripted flow: the UI is driven entirely by the e2e test (Maestro, see
-    // .maestro/todo-e2e.yaml). The ViewModel seeds a couple of todos so there's content to render.
     TodoRoot(viewModel)
-}
-
-@Composable
-fun MainScreen(
-    viewModel: MainViewModel = injectedViewModel(),
-    onClick: (() -> Unit)? = null
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable { onClick?.invoke() },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text("Compose")
-        Text(text = viewModel.getHelloWorld())
-    }
-}
-
-class BasicActivity : ComponentActivity() {
-
-    private val viewModel by injectedViewModel<MainViewModel>()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val message = "${viewModel.getHelloWorld()} from Basic activity"
-        Toast.makeText(
-            this,
-            message,
-            Toast.LENGTH_SHORT
-        ).show()
-    }
 }
