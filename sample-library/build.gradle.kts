@@ -14,14 +14,6 @@ plugins {
 // and the testbed sources compile against the local no-op runtime stubs under src/mundusStub/java.
 val mundusPresent = (providers.gradleProperty("mundus.present").orNull ?: "true").toBoolean()
 
-whetstone {
-    addOns {
-        // Demonstrates + tests the Dagger-interop add-on: lets LazyGraph inject `dagger.Lazy<Greeter>`
-        // (see InjectorAnnotationsFixtures) without migrating it to kotlin.Lazy.
-        daggerInterop.set(true)
-    }
-}
-
 android {
     namespace = "com.unpopulardev.whetstone.sample.library"
     compileSdk = 36
@@ -56,8 +48,6 @@ dependencies {
     implementation(libs.androidxComposeMaterial)
     implementation(libs.androidxActivityCompose)
     implementation(libs.androidxLifecycleViewModelCompose)
-    // Sample-only: `dagger.Lazy` injection site exercised by the daggerInterop add-on (LazyGraph).
-    implementation(libs.dagger)
     // External 3rd-party libs to demo Mundus call-site tracing (traceCalleePackages) — see StatsAuditor.
     implementation(libs.okio)
     implementation(libs.gson)

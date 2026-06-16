@@ -102,28 +102,11 @@ public interface ConfigGraph {
     }
 }
 
-// --- daggerInterop verification: a `dagger.Lazy<T>` injection site resolves without migration ---
-// Compiles only because sample-library enables `whetstone { addOns { daggerInterop.set(true) } }`,
-// which turns on Metro's Dagger runtime interop. Probed in WhetstoneRuntimeTest.
-@DependencyGraph
-public interface LazyGraph {
-    // RealGreeter has an @Inject constructor, so Metro can construct it inside this standalone graph;
-    // the point under test is that the `dagger.Lazy<…>` wrapper resolves at all (Dagger runtime interop).
-    public val lazyGreeter: dagger.Lazy<RealGreeter>
-
-    // Non-binding helper so tests can assert resolution without depending on dagger themselves
-    // (dagger stays an `implementation` detail of this module).
-    public fun greeting(): String = lazyGreeter.get().greet()
-
-    @DependencyGraph.Factory
-    public interface Factory {
-        public fun create(): LazyGraph
-    }
-}
-
-// --- Migration END-STATE: the same lazy injection with NO dagger ---
-// Metro provides `kotlin.Lazy<T>` natively, so a former `dagger.Lazy<T>` site becomes a plain
-// `kotlin.Lazy<T>` (access via `.value` instead of `.get()`) — no daggerInterop, no dagger dep.
+// --- Lazy injection, Metro-native (no dagger) ---
+// Metro provides `kotlin.Lazy<T>` directly. A codebase migrating off Dagger turns a
+// `dagger.Lazy<T>` site into a plain `kotlin.Lazy<T>` (access via `.value` instead of `.get()`).
+// The Whetstone `daggerInterop` add-on lets `dagger.Lazy` keep working during that migration;
+// this sample shows the finished, dagger-free form.
 @DependencyGraph
 public interface KotlinLazyGraph {
     public val lazyGreeter: Lazy<RealGreeter>
