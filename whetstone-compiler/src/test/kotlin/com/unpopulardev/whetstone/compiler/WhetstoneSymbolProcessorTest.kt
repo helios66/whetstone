@@ -376,6 +376,38 @@ class WhetstoneSymbolProcessorTest {
     }
 
     @Test
+    fun `map-key annotated with Whetstone's MapKey typealias is recognised as an IntoMap key`() {
+        val generated = compile(
+            SourceFile.kotlin(
+                "WhetstoneMapKey.kt",
+                """
+                package com.unpopulardev.whetstone
+                public typealias MapKey = dev.zacsweers.metro.MapKey
+                """.trimIndent(),
+            ),
+            SourceFile.kotlin(
+                "MapElement.kt",
+                """
+                package example
+                import com.unpopulardev.whetstone.injector.ContributesMultibinding
+                import com.unpopulardev.whetstone.MapKey
+                import test.AScope
+                @MapKey
+                annotation class DestinationKey(val value: String)
+                interface Destination
+                @ContributesMultibinding(AScope::class)
+                @DestinationKey("home")
+                class HomeDestination : Destination
+                """.trimIndent(),
+            ),
+        )
+        val module = generated.getValue("HomeDestination_WhetstoneContribution.kt")
+        assertTrue("@IntoMap" in module, module)
+        assertTrue("@IntoSet" !in module, module)
+        assertTrue("DestinationKey" in module, module)
+    }
+
+    @Test
     fun `injector ContributesTo aggregates the annotated interface into the scope`() {
         val generated = compile(
             SourceFile.kotlin(

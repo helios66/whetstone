@@ -14,6 +14,16 @@ consumer-facing annotation and `Whetstone.*` runtime APIs are source-compatible.
 for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
 
 ### Added
+- **Opt-in Dagger interop** — `whetstone { addOns { daggerInterop.set(true) } }` flips Metro's
+  Dagger annotation + runtime interop, so a codebase migrating off Dagger keeps `dagger.Lazy`,
+  `dagger.MapKey`, `@Module`/`@Provides`, etc. working without rewriting injection sites. Off by
+  default; turn it off once the migration is done. (Driven from `consumer` feedback — replaces a
+  manual `configure<MetroPluginExtension> { interop { includeDagger() } }` in the root build.)
+- **`@MapKey`** (`com.unpopulardev.whetstone.MapKey`) — a typealias to Metro's map-key meta-annotation
+  so custom map keys (e.g. `@DestinationKey`) annotate with a Whetstone import instead of
+  `dev.zacsweers.metro.*`. A module that only *defines* keys needs just the `whetstone` runtime
+  dependency (now exposing Metro's runtime as `api`), not the Gradle plugin. The KSP processor
+  recognises keys meta-annotated via this alias in `@ContributesMultibinding` map bindings.
 - **`@BindsInstance`** (`com.unpopulardev.whetstone.injector.BindsInstance`) — a drop-in for
   `dagger.BindsInstance`. A typealias to Metro's `@Provides` (what Metro uses to bind graph-factory
   parameters), so `fun create(@BindsInstance app: Application)` keeps working. Pure import swap.

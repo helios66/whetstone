@@ -11,6 +11,11 @@ dependencies {
     // Metro is configured (by the Gradle plugin) to treat them as injection points.
     api(libs.javaxInject)
 
+    // Expose Metro's runtime so Whetstone's facade types that alias Metro annotations (e.g. the
+    // `@MapKey` typealias) are usable downstream — including in modules that only define map keys
+    // and depend on `whetstone` without applying the Whetstone Gradle plugin.
+    api(libs.metroRuntime)
+
     implementation(libs.androidxLifecycleRuntime)
     implementation(libs.androidxLifecycleProcess)
     implementation(libs.androidxLifecycleViewModel)

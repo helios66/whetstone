@@ -464,7 +464,13 @@ internal class WhetstoneSymbolProcessor(
         const val CONTRIBUTES_BINDING_FQ = "$INJECTOR_PACKAGE.ContributesBinding"
         const val CONTRIBUTES_MULTIBINDING_FQ = "$INJECTOR_PACKAGE.ContributesMultibinding"
         val INJECTOR_CONTRIBUTION_FQ = setOf(CONTRIBUTES_BINDING_FQ, CONTRIBUTES_MULTIBINDING_FQ)
-        val MAP_KEY_FQ_NAMES = setOf("dev.zacsweers.metro.MapKey", "dagger.MapKey")
+        // Whetstone's own `@MapKey` is a typealias to Metro's; KSP reports a custom key meta-annotated
+        // through it under the alias FQN, so match that too (alongside the native Metro + Dagger names).
+        val MAP_KEY_FQ_NAMES = setOf(
+            "dev.zacsweers.metro.MapKey",
+            "dagger.MapKey",
+            "com.unpopulardev.whetstone.MapKey",
+        )
 
         const val NAME_REPLACES = "replaces"
         const val NAME_BOUND_TYPE = "boundType"

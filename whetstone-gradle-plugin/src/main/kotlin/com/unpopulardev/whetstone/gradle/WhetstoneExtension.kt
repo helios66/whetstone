@@ -55,4 +55,14 @@ public abstract class AddOnsHandler @Inject constructor(objects: ObjectFactory) 
      * When enabled, `whetstone-worker` will be automatically added to the project's dependencies.
      */
     public val workManager: Property<Boolean> = objects.property<Boolean>().convention(false)
+
+    /**
+     * Turns on/off Dagger interop in the underlying Metro compiler.
+     *
+     * When enabled, Metro recognises Dagger annotations (`@Module`, `@Provides`, `dagger.MapKey`, …)
+     * and Dagger runtime types (`dagger.Lazy`, …), so a codebase migrating off Dagger can keep those
+     * imports and constructor-injection sites unchanged instead of rewriting them. Turn it off once
+     * the migration is complete. Off by default.
+     */
+    public val daggerInterop: Property<Boolean> = objects.property<Boolean>().convention(false)
 }

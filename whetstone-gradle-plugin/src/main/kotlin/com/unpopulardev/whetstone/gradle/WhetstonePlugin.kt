@@ -21,6 +21,9 @@ public class WhetstonePlugin : Plugin<Project> {
         target.pluginManager.apply(METRO_PLUGIN_ID)
         target.pluginManager.apply(KSP_PLUGIN_ID)
         target.enableMetroJavaxInterop()
+        // Wired lazily from the extension flag (set later in the consumer's `whetstone {}` block), so
+        // Metro reads the resolved value at its own configuration time regardless of ordering.
+        target.enableMetroDaggerInterop(extension.addOns.daggerInterop)
         // Wire the processor + runtime eagerly. KSP decides whether its per-variant task has work
         // from the `ksp` configuration during its own afterEvaluate, so the dependency must be
         // present before then — adding it in our afterEvaluate is too late and KSP gets skipped.
@@ -93,12 +96,35 @@ public class WhetstonePlugin : Plugin<Project> {
      * native Metro `@ContributesTo` modules by the `whetstone-compiler` KSP processor, which does.
      */
     private fun Project.enableMetroJavaxInterop() {
+        metroInteropBoolProperty("getIncludeJavaxAnnotations").set(true)
+    }
+
+    /**
+     * Opt-in Dagger interop, driven by `whetstone { addOns { daggerInterop.set(true) } }`. Mirrors
+     * Metro's `interop { includeDagger() }`: it flips both the annotation-recognition flag (so
+     * `@Module`, `@Provides`, `dagger.MapKey`, … are understood) and the runtime-interop flag (so
+     * `dagger.Lazy` and friends resolve at injection sites). This lets a codebase migrating off
+     * Dagger keep those imports instead of rewriting hundreds of files.
+     *
+     * The flag is wired as a provider so Metro reads the consumer-supplied value at its own
+     * configuration time — no afterEvaluate ordering assumptions.
+     */
+    private fun Project.enableMetroDaggerInterop(enabled: org.gradle.api.provider.Provider<Boolean>) {
+        metroInteropBoolProperty("getIncludeDaggerAnnotations").set(enabled)
+        metroInteropBoolProperty("getEnableDaggerRuntimeInterop").set(enabled)
+    }
+
+    /**
+     * Reflectively fetch a `Property<Boolean>` off the `metro` extension's `interop` handler. Done
+     * reflectively because the Metro Gradle plugin is only on this plugin's runtime classpath (not
+     * its compile classpath).
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun Project.metroInteropBoolProperty(getter: String): org.gradle.api.provider.Property<Boolean> {
         val metro = extensions.getByName("metro")
         val interop = metro.javaClass.getMethod("getInterop").invoke(metro)
-        @Suppress("UNCHECKED_CAST")
-        val includeJavax = interop.javaClass.getMethod("getIncludeJavaxAnnotations").invoke(interop)
+        return interop.javaClass.getMethod(getter).invoke(interop)
             as org.gradle.api.provider.Property<Boolean>
-        includeJavax.set(true)
     }
 
     private fun Project.dependency(moduleId: String): Any {
