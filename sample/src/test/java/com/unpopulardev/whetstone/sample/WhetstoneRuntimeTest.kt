@@ -6,6 +6,7 @@ import com.unpopulardev.whetstone.app.ApplicationComponent
 import com.unpopulardev.whetstone.sample.library.ConfigGraph
 import com.unpopulardev.whetstone.sample.library.InjectorAnnotationsProbe
 import com.unpopulardev.whetstone.sample.library.LazyGraph
+import com.unpopulardev.whetstone.sample.library.KotlinLazyGraph
 import dev.zacsweers.metro.createGraphFactory
 import com.unpopulardev.whetstone.worker.MultibindingWorkerFactory
 import com.unpopulardev.whetstone.worker.WorkerFactoryProvider
@@ -75,6 +76,13 @@ class WhetstoneRuntimeTest {
         // sample-library enables `whetstone { addOns { daggerInterop.set(true) } }`, so Metro provides
         // a dagger.Lazy<Greeter> without the consumer migrating it to kotlin.Lazy.
         val graph = createGraphFactory<LazyGraph.Factory>().create()
+        assertEquals("real-greeter", graph.greeting())
+    }
+
+    @Test
+    fun `kotlin Lazy resolves natively without dagger (migration end-state)`() {
+        // Metro provides kotlin.Lazy<T> directly — the dagger-free form of the LazyGraph above.
+        val graph = createGraphFactory<KotlinLazyGraph.Factory>().create()
         assertEquals("real-greeter", graph.greeting())
     }
 

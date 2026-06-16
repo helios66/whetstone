@@ -120,3 +120,18 @@ public interface LazyGraph {
         public fun create(): LazyGraph
     }
 }
+
+// --- Migration END-STATE: the same lazy injection with NO dagger ---
+// Metro provides `kotlin.Lazy<T>` natively, so a former `dagger.Lazy<T>` site becomes a plain
+// `kotlin.Lazy<T>` (access via `.value` instead of `.get()`) — no daggerInterop, no dagger dep.
+@DependencyGraph
+public interface KotlinLazyGraph {
+    public val lazyGreeter: Lazy<RealGreeter>
+
+    public fun greeting(): String = lazyGreeter.value.greet()
+
+    @DependencyGraph.Factory
+    public interface Factory {
+        public fun create(): KotlinLazyGraph
+    }
+}
