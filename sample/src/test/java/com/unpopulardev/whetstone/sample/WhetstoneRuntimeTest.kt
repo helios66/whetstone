@@ -5,6 +5,7 @@ import com.unpopulardev.whetstone.Whetstone
 import com.unpopulardev.whetstone.app.ApplicationComponent
 import com.unpopulardev.whetstone.sample.library.ConfigGraph
 import com.unpopulardev.whetstone.sample.library.InjectorAnnotationsProbe
+import com.unpopulardev.whetstone.sample.library.LazyGraph
 import dev.zacsweers.metro.createGraphFactory
 import com.unpopulardev.whetstone.worker.MultibindingWorkerFactory
 import com.unpopulardev.whetstone.worker.WorkerFactoryProvider
@@ -67,5 +68,21 @@ class WhetstoneRuntimeTest {
         // whetstone @BindsInstance (typealias to Metro @Provides) on a factory param must bind.
         val graph = createGraphFactory<ConfigGraph.Factory>().create("hello-config")
         assertEquals("hello-config", graph.configName)
+    }
+
+    @Test
+    fun `daggerInterop resolves a dagger Lazy injection site`() {
+        // sample-library enables `whetstone { addOns { daggerInterop.set(true) } }`, so Metro provides
+        // a dagger.Lazy<Greeter> without the consumer migrating it to kotlin.Lazy.
+        val graph = createGraphFactory<LazyGraph.Factory>().create()
+        assertEquals("real-greeter", graph.greeting())
+    }
+
+    @Test
+    fun `custom map key via Whetstone MapKey typealias resolves into the map multibinding`() {
+        // InjectorAnnotationsProbe.destinations is keyed by @DestinationKey, which is now annotated
+        // with com.unpopulardev.whetstone.MapKey (typealias to Metro's) rather than Metro's directly.
+        val probe = Whetstone.fromApplication<InjectorAnnotationsProbe>(app)
+        assertEquals(setOf("home", "cart"), probe.destinations.keys)
     }
 }

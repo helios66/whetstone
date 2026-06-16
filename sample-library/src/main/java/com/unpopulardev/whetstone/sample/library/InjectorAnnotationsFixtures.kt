@@ -6,8 +6,8 @@ import com.unpopulardev.whetstone.injector.BindsInstance
 import com.unpopulardev.whetstone.injector.ContributesBinding
 import com.unpopulardev.whetstone.injector.ContributesMultibinding
 import com.unpopulardev.whetstone.injector.ContributesTo
+import com.unpopulardev.whetstone.MapKey
 import dev.zacsweers.metro.DependencyGraph
-import dev.zacsweers.metro.MapKey
 import javax.inject.Inject
 
 /**
@@ -99,5 +99,24 @@ public interface ConfigGraph {
     public interface Factory {
         // whetstone @BindsInstance == Metro @Provides — binds the param into the graph
         public fun create(@BindsInstance configName: String): ConfigGraph
+    }
+}
+
+// --- daggerInterop verification: a `dagger.Lazy<T>` injection site resolves without migration ---
+// Compiles only because sample-library enables `whetstone { addOns { daggerInterop.set(true) } }`,
+// which turns on Metro's Dagger runtime interop. Probed in WhetstoneRuntimeTest.
+@DependencyGraph
+public interface LazyGraph {
+    // RealGreeter has an @Inject constructor, so Metro can construct it inside this standalone graph;
+    // the point under test is that the `dagger.Lazy<…>` wrapper resolves at all (Dagger runtime interop).
+    public val lazyGreeter: dagger.Lazy<RealGreeter>
+
+    // Non-binding helper so tests can assert resolution without depending on dagger themselves
+    // (dagger stays an `implementation` detail of this module).
+    public fun greeting(): String = lazyGreeter.get().greet()
+
+    @DependencyGraph.Factory
+    public interface Factory {
+        public fun create(): LazyGraph
     }
 }

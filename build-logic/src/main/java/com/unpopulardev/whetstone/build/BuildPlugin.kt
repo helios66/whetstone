@@ -44,7 +44,10 @@ class BuildPlugin : Plugin<Project> {
             is KotlinAndroidProjectExtension -> compilerOptions(config)
         }
         if (project.name != "sample") explicitApi()
-        jvmToolchain(17)
+        // Kotlin compiler JDK. Metro 1.2.1's compiler plugin ships Java 21 bytecode, so the Kotlin
+        // daemon must run on JDK 21+ to load it (a JDK 17 daemon fails with UnsupportedClassVersionError
+        // on a clean compile). `jvmTarget` above stays JVM_11, so emitted bytecode is unaffected.
+        jvmToolchain(21)
     }
 
     private fun Project.configureAndroid() = plugins.withId("com.android.base") {
@@ -54,7 +57,14 @@ class BuildPlugin : Plugin<Project> {
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_11
                 targetCompatibility = JavaVersion.VERSION_11
+                // Backport Java 8+ APIs (e.g. java.lang.Iterable#forEach, java.time) below their
+                // native API level so minSdk 23 can use them. Compiling on JDK 21 binds some calls
+                // to Java member functions that require API 24; desugaring makes them safe.
+                isCoreLibraryDesugaringEnabled = true
             }
+        }
+        dependencies {
+            add("coreLibraryDesugaring", libs.findLibrary("desugarJdkLibs").get())
         }
     }
 

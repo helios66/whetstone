@@ -11,6 +11,9 @@ constraintlayout = "2.2.1"
 kotlin = "2.3.20"
 metro = "1.2.1"
 ksp = "2.3.9"
+# Sample-only: exercises the `daggerInterop` add-on (dagger.Lazy at an injection site).
+dagger = "2.51.1"
+desugarJdkLibs = "2.1.5"
 kotlinpoet = "2.3.0"
 kctfork = "0.13.0"
 mavenPublish = "0.34.0"
@@ -63,6 +66,8 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 detekt-gradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 javaxInject = { module = "javax.inject:javax.inject", version = "1" }
+dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
+desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }

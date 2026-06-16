@@ -87,6 +87,12 @@ for API 21/22, so consumers must target API 23 (Android 6.0) or higher.
 - Bumped Kotlin 2.2.0 → 2.3.20 (required by Metro 1.2.0); added KSP 2.3.9. The
   `whetstone-gradle-plugin` module now targets Java 21 (Metro's Gradle plugin ships Java 21 bytecode).
 
+### Fixed
+- **Kotlin compiler toolchain raised 17 → 21.** Metro 1.2.1's compiler plugin ships Java 21 bytecode,
+  so a Kotlin daemon on JDK 17 failed a clean compile with `UnsupportedClassVersionError`. The
+  emitted bytecode target stays JVM 11. Enabled **core library desugaring** so Java 8+ APIs (e.g.
+  `Iterable#forEach`) stay safe on `minSdk 23` when compiling on JDK 21.
+
 ### Removed
 - Dagger `@LazyClassKey` ProGuard machinery — Metro `@ClassKey` references classes directly, so
   the generated `*_LazyMapKey` helpers, generated `.pro` files, and the Gradle plugin's
